@@ -1,5 +1,5 @@
-const BULLET_SPEED = 750;
-const ENEMY_BULLET_SPEED = 100;
+const BULLET_SPEED = 1000;
+const ENEMY_BULLET_SPEED = 250;
 const ENEMY_SPEED = 100;
 const PLAYER_SPEED = 200;
 const INITIAL_POWERUP_POINT_SPEED = -60;
@@ -7,24 +7,16 @@ const INITIAL_POWERUP_POWER_SPEED = -50;
 const SMALL_POWERUP_POINT_SPEED = 1000;
 
 let isFiring = false;
-let power = 1.0;
+let power = args.power;
 let position = 0;
-let graze = 0;
-let itemCount = 0;
-let life = 3;
-let bomb = 3;
+let graze = args.graze;
+let life = args.life;
+let bomb = args.bomb;
+let itemCount = args.itemCount;
 let isRespawning = false;
 let isInvincible = false;
 let isFocusing = false;
 let isBossExist = false;
-
-loadSprite("player00", "sprites/player00.png", {
-  sliceX: 4,
-  sliceY: 1,
-  anims: {
-     idle: [0,3]
-  }
-});
 
 gravity(200);
 
@@ -32,7 +24,7 @@ var bgm = document.getElementById("bgm");
 
 bgm.ontimeupdate = function () {
   if (bgm.currentTime >= bgm.duration - 0.2) {
-    bgm.currentTime = 21;
+    bgm.currentTime = 7.5;
     bgm.play();
   }
 }
@@ -89,12 +81,11 @@ const boss2Location = [601];
 // play("th06_02");
 
 let player = add([
-  sprite("player00"),
+  sprite("player01"),
   pos(mapWidth() / 2, height() - 15),
   scale(1),
   "player"
 ]);
-player.play("idle");
 
 let playerHitJudgePoint = add([
   sprite("hitpoint"),
@@ -445,7 +436,9 @@ collides("bullet", "boss02", (bullet, boss) => {
       bossRunes.hidden = true;
       isBossExist = false;
       bgm.pause();
+      // debugger;
       setTimeout(() => {
+        /*
         go("levelup", {
           initScore: score.value,
           life: life,
@@ -455,6 +448,12 @@ collides("bullet", "boss02", (bullet, boss) => {
           itemCount: itemCount,
           nextLevel: 2
         });
+        */
+        bgm.pause();
+        bgm.src = "./sounds/th06_16.mp3";
+        bgm.load();
+        bgm.play();
+        go("tbc", score.value);
       }, 2000);
     } else {
       boss.rune--;
@@ -498,6 +497,10 @@ function convertAllBullets() { // when defeating a rune of a boss
   });
 }
 
+function removeAllBullets() { // bomb
+
+}
+
 const hudBorder = add([
   // width, height
   rect(209, 470),
@@ -514,18 +517,18 @@ const hud = add([
 
 const score = add([
   pos(width() - 200, 12),
-  text("Score   0"),
+  text("Score   " + args.initScore),
   // all objects defaults origin to center, we want score text to be top left
   origin("topleft"),
   // plain objects becomes fields of score
   {
-    value: 0,
+    value: args.initScore,
   },
 ]);
 
 const powerText = add([
   pos(width() - 200, 20),
-  text("Power   1.0"),
+  text("Power   " + (power >= 10 ? "MAX" : power)),
   origin("topleft"),
   {}
 ])
@@ -679,6 +682,7 @@ collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
 collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
 collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
 
+
 function playerGraze(player, bullet) {
   if (!bullet.isGrazed) {
     bullet.isGrazed = true;
@@ -697,7 +701,7 @@ collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
 action("enemyA", (e) => {
   e.move(0, ENEMY_SPEED);
   e.time++;
-  if (e.time == 50) { // enemy shoot
+  if (e.time % 10 == 0) { // enemy shoot
     add([  
       sprite("eb2"), 
       rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
@@ -716,7 +720,7 @@ action("enemyA", (e) => {
 action("enemyB", (e) => {
   e.move(ENEMY_SPEED, 0);
   e.time++;
-  if (e.time == 50) { // enemy shoot
+  if (e.time % 10 == 0) { // enemy shoot
     add([  
       sprite("eb2"), 
       rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
@@ -735,7 +739,7 @@ action("enemyB", (e) => {
 action("enemyC", (e) => {
   e.time++;
   e.move(-ENEMY_SPEED, 0);
-  if (e.time == 50) { // enemy shoot
+  if (e.time % 10 == 0) { // enemy shoot
     add([  
       sprite("eb2"), 
       rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
@@ -754,7 +758,7 @@ action("enemyC", (e) => {
 action("enemyD", (e) => {
   e.move(0, ENEMY_SPEED);
   e.time++;
-  if (e.time % 100 == 0) { // enemy shoot
+  if (e.time % 50 == 0) { // enemy shoot
     let randDirection = rand(0, Math.PI * 2);
     for (let i = 0; i < 6; i ++) {
       add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
