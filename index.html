@@ -4,7 +4,7 @@
 <html>
 
 <head>
-  <title>kaboom</title>
+  <title>Touhou Akamakyou V3.1 (Dev)</title>
   <meta charset="utf-8">
   <style>
     * {
@@ -23,14 +23,19 @@
 </head>
 
 <body>
-<script src="https://kaboomjs.com/lib/0.0.0/kaboom.js"></script>
-<script src="https://kaboomjs.com/lib/0.0.0/kit/physics.js"></script>
-<script src="https://kaboomjs.com/lib/0.0.0/kit/starter.js"></script>
-<script src="https://kaboomjs.com/lib/0.0.0/kit/level.js"></script>
+<script src="./static/kaboom.js"></script>
+<script src="./static/physics.js"></script>
+<script src="./static/starter.js"></script>
+<script src="./static/level.js"></script>
+<!-- <script src="https://kaboomjs.com/lib/master/kit/physics.js"></script>
+<script src="https://kaboomjs.com/lib/master/kit/starter.js"></script>
+<script src="https://kaboomjs.com/lib/master/kit/level.js"></script> -->
 
   <script>
 kaboom.import();
-loadSprite("bomb", "sprites/bomb.png");
+// kaboom.global();
+  </script>
+  <script>
 loadSprite("boss01", "sprites/boss01.png");
 loadSprite("bullet00", "sprites/bullet00.png");
 loadSprite("eb1", "sprites/eb1.png");
@@ -38,31 +43,54 @@ loadSprite("eb2", "sprites/eb2.png");
 loadSprite("enemy00", "sprites/enemy00.png");
 loadSprite("enemy01", "sprites/enemy01.png");
 loadSprite("hitpoint", "sprites/hitpoint.png");
-loadSprite("player-1", "sprites/player-1.kbmsprite");
-loadSprite("player00", "sprites/player00.png");
+loadSprite("player00", "sprites/player02.png", {
+  sliceX: 4,
+  sliceY: 1,
+  anims: {
+     idle: [0,3]
+  }
+});
+loadSprite("enemy02", "sprites/stg7enm.png", {
+  sliceX: 8,
+  sliceY: 8,
+  anims: {
+     idle: [0,7]
+  }
+});
+loadSprite("enemy03", "sprites/stg7enm.png", {
+  sliceX: 8,
+  sliceY: 8,
+  anims: {
+     idle: [8,15]
+  }
+});
 loadSprite("player01", "sprites/player01.png");
-loadSprite("player03", "sprites/player03.png");
+// loadAseprite("player01", "sprites/player02.png", "sprites/player02.json");
 loadSprite("point", "sprites/point.png");
 loadSprite("power", "sprites/power.png");
+loadSprite("bomb", "sprites/bomb.png");
 loadSprite("smallpoint", "sprites/smallpoint.png");
 loadSprite("title00", "sprites/title00.jpg");
+loadSprite("bg1", "sprites/bg1.png");
+loadSprite("bg2", "sprites/bg2.png");
+loadSprite("bg3", "sprites/bg3.png");
 loadSound("bossDestroy", "sounds/bossDestroy.wav");
 loadSound("fire", "sounds/fire.wav");
 loadSound("hit", "sounds/hit.mp3");
 loadSound("kill", "sounds/kill.wav");
 loadSound("pick", "sounds/pick.wav");
+loadSound("bomb", "sounds/bomb.wav");
 loadSound("se_tan00", "sounds/se_tan00.wav");
 loadSound("se_tan01", "sounds/se_tan01.wav");
 loadSound("se_tan02", "sounds/se_tan02.wav");
-loadSound("th06_01", "sounds/th06_01.mp3");
-loadSound("th06_02", "sounds/th06_02.mp3");
-loadSound("th06_04", "sounds/th06_04.mp3");
-loadSound("th06_09", "sounds/th06_09.mp3");
+// loadSound("th06_01", "sounds/th06_01.mp3");
+// loadSound("th06_02", "sounds/th06_02.mp3");
+// loadSound("th06_04", "sounds/th06_04.mp3");
+// loadSound("th06_09", "sounds/th06_09.mp3");
 
 init({
-  width: 640,
-  height: 480,
-  fullscreen: false,
+  width: false ? window.innerWidth / 1 : 640,
+  height: false ? window.innerHeight / 1 : 480,
   scale: 1,
 });
 scene("gameover", (args = {}) => {
@@ -76,1836 +104,2877 @@ scene("gameover", (args = {}) => {
     })
 });
 scene("level1", (args = {}) => {
-const BULLET_SPEED = 750;
-const ENEMY_BULLET_SPEED = 100;
-const ENEMY_SPEED = 100;
-const PLAYER_SPEED = 200;
-const INITIAL_POWERUP_POINT_SPEED = -60;
-const INITIAL_POWERUP_POWER_SPEED = -50;
-const SMALL_POWERUP_POINT_SPEED = 1000;
+  const BULLET_SPEED = 750;
+  const ENEMY_BULLET_SPEED = 100;
+  const ENEMY_SPEED = 100;
+  const PLAYER_SPEED = 200;
+  const INITIAL_POWERUP_POINT_SPEED = -60;
+  const INITIAL_POWERUP_POWER_SPEED = -50;
+  const SMALL_POWERUP_POINT_SPEED = 1000;
 
-let isFiring = false;
-let power = 1.0;
-let position = 0;
-let graze = 0;
-let itemCount = 0;
-let life = 3;
-let bomb = 3;
-let isRespawning = false;
-let isInvincible = false;
-let isFocusing = false;
-let isBossExist = false;
+  let isFiring = false;
+  let power = 1.0;
+  let position = 0;
+  let graze = 0;
+  let itemCount = 0;
+  let life = 3;
+  let bomb = 3;
+  let isRespawning = false;
+  let isInvincible = false;
+  let isFocusing = false;
+  let isBossExist = false;
 
-loadSprite("player00", "sprites/player00.png", {
-  sliceX: 4,
-  sliceY: 1,
-  anims: {
-     idle: [0,3]
+  gravity(200);
+
+  var bgm = document.getElementById("bgm");
+
+  bgm.ontimeupdate = function () {
+    if (bgm.currentTime >= bgm.duration - 0.2) {
+      bgm.currentTime = 21;
+      bgm.play();
+    }
   }
-});
 
-gravity(200);
-
-var bgm = document.getElementById("bgm");
-
-bgm.ontimeupdate = function () {
-  if (bgm.currentTime >= bgm.duration - 0.2) {
-    bgm.currentTime = 21;
-    bgm.play();
+  function mapWidth() {
+    return width() / 3 * 2;
   }
-}
 
-function mapWidth() {
-  return width() / 3 * 2;
-}
+  const MAX_BOSS_HP_BAR_WIDTH = mapWidth() - 110;
 
-const MAX_BOSS_HP_BAR_WIDTH = mapWidth() - 110;
+  function getDirection(ex, ey) {
+    var dx = player.pos.x - ex;
+    var dy = player.pos.y - ey;
+    var r = Math.hypot(player.pos.x - ex, player.pos.y - ey);
+    if (dx <= 0 && dy >= 0) return Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy >= 0) return Math.PI - Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy <= 0) return Math.asin(Math.abs(dy) / r) + Math.PI;
+    if (dx <= 0 && dy <= 0) return Math.PI * 2 - Math.asin(Math.abs(dy) / r);
+  }
 
-function getDirection(ex, ey) {
-  var dx = player.pos.x - ex;
-  var dy = player.pos.y - ey;
-  var r = Math.hypot(player.pos.x - ex, player.pos.y - ey);
-  if (dx <= 0 && dy >= 0) return Math.asin(Math.abs(dy) / r);
-  if (dx >= 0 && dy >= 0) return Math.PI - Math.asin(Math.abs(dy) / r);
-  if (dx >= 0 && dy <= 0) return Math.asin(Math.abs(dy) / r) + Math.PI;
-  if (dx <= 0 && dy <= 0) return Math.PI * 2 - Math.asin(Math.abs(dy) / r);
-}
-
-const enemyALocation = [ 9, 12, 13, 14, 22, 23, 24, 
-                        109, 112, 113, 114, 122, 123, 124,
-                        209, 212, 213, 214, 222, 223, 224,
-                        // small boss
-                        309, 312, 313, 314, 322, 323, 324,
-                        409, 412, 413, 414, 422, 423, 424,
-                        509, 512, 513, 514, 522, 523, 524];
-const enemyBLocation = [32, 34, 36, 38, 40, 52, 54, 56, 58, 60,
-                      132, 134, 136, 138, 140, 152, 154, 156, 158, 160,
-                      232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+  const enemyALocation = [ 9, 12, 13, 14, 22, 23, 24, 
+                         109, 112, 113, 114, 122, 123, 124,
+                         209, 212, 213, 214, 222, 223, 224,
+                         // small boss
+                         309, 312, 313, 314, 322, 323, 324,
+                         409, 412, 413, 414, 422, 423, 424,
+                         509, 512, 513, 514, 522, 523, 524];
+  const enemyBLocation = [32, 34, 36, 38, 40, 52, 54, 56, 58, 60,
+                       132, 134, 136, 138, 140, 152, 154, 156, 158, 160,
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       // small boss
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       332, 334, 336, 338, 340, 352, 354, 356, 358, 360,
+                       432, 434, 436, 438, 440, 452, 454, 456, 458, 460];
+  const enemyCLocation = [31, 33, 35, 37, 39, 51, 53, 55, 57, 59,
+                      131, 133, 135, 137, 139, 151, 153, 155, 157, 159,
+                      231, 233, 235, 237, 239, 251, 253, 255, 257, 259,
                       // small boss
-                      232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
-                      332, 334, 336, 338, 340, 352, 354, 356, 358, 360,
-                      432, 434, 436, 438, 440, 452, 454, 456, 458, 460];
-const enemyCLocation = [31, 33, 35, 37, 39, 51, 53, 55, 57, 59,
-                    131, 133, 135, 137, 139, 151, 153, 155, 157, 159,
-                    231, 233, 235, 237, 239, 251, 253, 255, 257, 259,
-                    // small boss
-                    331, 333, 335, 337, 339, 351, 353, 355, 357, 359,
-                    431, 433, 435, 437, 439, 451, 453, 455, 457, 459,
-                    531, 533, 535, 537, 539, 551, 553, 555, 557, 559];
-const enemyDLocation = [72, 74, 76, 78, 80, 92, 94, 96, 98, 100,
-                    172, 174, 176, 178, 180, 192, 194, 196, 198, 200,
-                    272, 274, 276, 278, 280, 292, 294, 296, 298, 300,
-                    // small boss
-                    372, 374, 376, 378, 380, 392, 394, 396, 398, 400,
-                    472, 474, 476, 478, 480, 492, 494, 496, 498, 500,
-                    572, 574, 576, 578, 580, 592, 594, 596, 598, 600];
+                      331, 333, 335, 337, 339, 351, 353, 355, 357, 359,
+                      431, 433, 435, 437, 439, 451, 453, 455, 457, 459,
+                      531, 533, 535, 537, 539, 551, 553, 555, 557, 559];
+  const enemyDLocation = [72, 74, 76, 78, 80, 92, 94, 96, 98, 100,
+                      172, 174, 176, 178, 180, 192, 194, 196, 198, 200,
+                      272, 274, 276, 278, 280, 292, 294, 296, 298, 300,
+                      // small boss
+                      372, 374, 376, 378, 380, 392, 394, 396, 398, 400,
+                      472, 474, 476, 478, 480, 492, 494, 496, 498, 500,
+                      572, 574, 576, 578, 580, 592, 594, 596, 598, 600];
 
-const boss1Location = [301];
-// const boss2Location = [1];
-const boss2Location = [601];
+  const boss1Location = [301];
+  // const boss2Location = [1];
+  const boss2Location = [601];
+  
+  // play("th06_02");
 
-// play("th06_02");
+  layers([
+    "bg",
+    "game",
+    "ui",
+  ], "game");
 
-let player = add([
-  sprite("player00"),
-  pos(mapWidth() / 2, height() - 15),
-  scale(1),
-  "player"
-]);
-player.play("idle");
-
-let playerHitJudgePoint = add([
-  sprite("hitpoint"),
-  pos(player.pos.x, player.pos.y),
-  scale(0.7),
-  "playerHitJudgePoint"
-]);
-
-let bossHPBar = add([
-  rect(MAX_BOSS_HP_BAR_WIDTH, 10),
-  pos(65, 10),
-  color(1,1,1),
-  origin("left")
-]);
-
-let bossRunes = add([
-  pos(5, 7),
-  text("Enemy 0"),
-  // all objects defaults origin to center, we want score text to be top left
-  origin("topleft"),
-  // plain objects becomes fields of score
-  {
-    value: 0,
-  },
-]);
-
-bossHPBar.hidden = true;
-bossRunes.hidden = true;
-
-keyDown("left", () => {
-  if (player.pos.x > 0) {
-    player.move(-PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
-  } else {
-    player.pos.x = 0;
+  for (var bgi = 0; bgi < 100; bgi++) {
+    add([
+      sprite("bg1"),
+      pos(0, 1000 * 0.76 - 1000 * 0.76 * bgi),
+      scale(0.76),
+      origin("botleft"),
+      layer("bg"),
+      "bg"
+    ]);
   }
-});
 
-keyDown("right", () => {
-  if (player.pos.x < mapWidth()) {
-    player.move(PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
-  } else {
-    player.pos.x = mapWidth();
-  }
-});
+  action("bg", (e) => {
+    e.move(0, 100);
+    if (e.pos.y >= 1500) {
+      destroy(e);
+    }
+  });
 
-keyDown("up", () => {
-  if (player.pos.y > 0) {
-    player.move(0, -PLAYER_SPEED * (isFocusing ? 0.5 : 1));
-  } else {
-    player.pos.y = 0;
-  }
-});
+  let player = add([
+    sprite("player00"),
+    pos(mapWidth() / 2, height() - 15),
+    scale(1),
+    "player"
+  ]);
+  player.play("idle");
 
-keyDown("down", () => {
-  if (player.pos.y < height()) {
-    player.move(0, PLAYER_SPEED * (isFocusing ? 0.5 : 1));
-  } else {
-    player.pos.y = height();
-  }
-});
+  let playerHitJudgePoint = add([
+    sprite("hitpoint"),
+    pos(player.pos.x, player.pos.y),
+    scale(0.7),
+    "playerHitJudgePoint"
+  ]);
 
-keyDown("x", () => { isFiring = true; });
+  let bossHPBar = add([
+    rect(MAX_BOSS_HP_BAR_WIDTH, 10),
+    pos(65, 10),
+    color(1,1,1),
+    origin("left")
+  ]);
 
-keyRelease("x", () => { isFiring = false; });
+  let bossRunes = add([
+    pos(5, 7),
+    text("Enemy 0"),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: 0,
+    },
+  ]);
 
-keyDown("z", () => { isFocusing = true;});
+  bossHPBar.hidden = true;
+  bossRunes.hidden = true;
 
-keyRelease("z", () => { isFocusing = false;}); // shift key has issues
+  keyDown("left", () => {
+    if (player.pos.x > 0) {
+      player.move(-PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = 0;
+    }
+  });
 
-keyPress("c", () => {
-  if (bomb > 0) {
-    play("bomb");
-    bomb--;
-    bombText.text = "Bomb    " + bomb;
-    destroyAll("enemyBullet1");
-    destroyAll("enemyBullet2");
-    destroyAll("bossBullet1");
-  }
-});
+  keyDown("right", () => {
+    if (player.pos.x < mapWidth()) {
+      player.move(PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = mapWidth();
+    }
+  });
+
+  keyDown("up", () => {
+    if (player.pos.y > 0) {
+      player.move(0, -PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = 0;
+    }
+  });
+
+  keyDown("down", () => {
+    if (player.pos.y < height()) {
+      player.move(0, PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = height();
+    }
+  });
+
+  keyDown("x", () => { isFiring = true; });
+
+  keyRelease("x", () => { isFiring = false; });
+
+  keyDown("z", () => { isFocusing = true;});
+
+  keyRelease("z", () => { isFocusing = false;}); // shift key has issues
+
+  keyPress("c", () => {
+    if (bomb > 0) {
+      play("bomb");
+      bomb--;
+      bombText.text = "Bomb    " + bomb;
+      destroyAll("enemyBullet1");
+      destroyAll("enemyBullet2");
+      destroyAll("bossBullet1");
+    }
+  });
 
 /*
-keyPress("space", () => {
-  add([
-    sprite("bullet00"),
-    pos(player.pos),
-    // strings here means a tag
-    "bullet",
-  ]);
-});
+  keyPress("space", () => {
+    add([
+      sprite("bullet00"),
+      pos(player.pos),
+      // strings here means a tag
+      "bullet",
+    ]);
+  });
 */
-// run this callback every frame for all objects with tag "bullet"
-action("bullet", (b) => {
-  b.move(Math.cos(b.direction) * BULLET_SPEED, -Math.sin(b.direction) * BULLET_SPEED);
-  // remove the bullet if it's out of the scene for performance
-  if (b.pos.y < 0 || b.pos.x < 0 || b.pos.x > mapWidth()) {
-    destroy(b);
-  }
-});
-
-function spawnEnemyA() { return add([  sprite("enemy00"),  pos(rand(0, mapWidth()), 0), "enemyA", {
-  time: 0
-}]);}
-function spawnEnemyB() { return add([  sprite("enemy00"),  pos(0, 48), "enemyB", {
-  time: 0
-}]);}
-function spawnEnemyC() { return add([  sprite("enemy00"),  pos(mapWidth(), 48), "enemyC", {
-  time: 0
-}]);}
-function spawnEnemyD() { return add([  sprite("enemy01"),  pos(rand(0, mapWidth()), 0), "enemyD", {
-  time: 0
-}]);}
-
-function spawnBoss1() {
-  isBossExist = true;
-  bossHPBar.hidden = false;
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
-  bossRunes.hidden = false;
-  bossRunes.text = "Enemy 0";
-  return add([
-    sprite("boss01"),
-    pos(mapWidth() / 2, 0),
-    "boss01", {
-      time: 0,
-      life: 200,
-      rune: 2, // runes
-      maxLife: 200,
-      maxRune: 2,
-      countdown: 60,
-      downspeed: 1,
-      isLanding: true,
-      damaku: [[
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 2, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 4, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 6, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 8, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 10, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 12, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 14, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 16, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 18, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 20, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 22, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 24, speed: 100, begin: 111},
-
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 101},
-
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 121},
-      ]]
+  // run this callback every frame for all objects with tag "bullet"
+  action("bullet", (b) => {
+    b.move(Math.cos(b.direction) * BULLET_SPEED, -Math.sin(b.direction) * BULLET_SPEED);
+    // remove the bullet if it's out of the scene for performance
+    if (b.pos.y < 0 || b.pos.x < 0 || b.pos.x > mapWidth()) {
+      destroy(b);
     }
-  ])
-}
+  });
 
-action("boss01", (e) => {
-  if (e.pos.y < 80 && e.isLanding) {
-    e.pos.y += e.downspeed;
-    return;
-  } else {
-    e.isLanding = false;
+  function spawnEnemyA() { var e = add([  sprite("enemy02"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyA", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyB() { var e = add([  sprite("enemy02"), scale(0.7),  pos(0, 48), "enemyB", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyC() { var e = add([  sprite("enemy02"), scale(0.7),  pos(mapWidth(), 48), "enemyC", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyD() { var e = add([  sprite("enemy03"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyD", {
+    time: 0
+  }]); e.play("idle"); return e;}
+
+  function spawnBoss1() {
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 0";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss01", {
+        time: 0,
+        life: 200,
+        rune: 2, // runes
+        maxLife: 200,
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 2, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 4, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 6, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 8, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 10, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 12, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 14, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 16, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 18, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 20, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 22, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 24, speed: 100, begin: 111},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 101},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 121},
+        ]]
+      }
+    ])
   }
-  e.time++;
 
-  e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
-  e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
-  
-  for (var x in e.damaku[0]) {
-    if ((e.time - e.damaku[0][x].begin) % e.damaku[0][x].interval == 0) {
-      play("se_tan01", {volume: 0.02});
-      if (e.damaku[e.maxRune - e.rune][x].direction != null) {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: e.damaku[e.maxRune - e.rune][x].direction,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      } else {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          rotate(getDirection(e.pos.x, e.pos.y)) , 
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: getDirection(e.pos.x, e.pos.y),
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
+  action("boss01", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[0]) {
+      if ((e.time - e.damaku[0][x].begin) % e.damaku[0][x].interval == 0) {
+        play("se_tan01", {volume: 0.02});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y)) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: getDirection(e.pos.x, e.pos.y),
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
       }
     }
-  }
-  
-});
+    
+  });
 
-collides("bullet", "boss01", (bullet, boss) => {
-  boss.life--;
-  destroy(bullet);
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
-  score.value += 11;
-  score.text = "Score   " + score.value;
-  if (boss.life <= 0) {
-    play("bossDestroy", {volume : 0.7});
-    convertAllBullets();
-    destroy(boss);
-    bossHPBar.hidden = true;
-    bossRunes.hidden = true;
-    isBossExist = false;
-  }
-});
-
-function spawnBoss2() {
-  bgm.pause();
-  bgm.src = "./sounds/th06_09.mp3";
-  bgm.load();
-  bgm.play();
-  isBossExist = true;
-  bossHPBar.hidden = false;
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
-  bossRunes.hidden = false;
-  bossRunes.text = "Enemy 1";
-  return add([
-    sprite("boss01"),
-    pos(mapWidth() / 2, 0),
-    "boss02", {
-      time: 0,
-      life: 500, // current life 
-      rune: 2, // runes
-      maxLife: 500, // life of each rune
-      maxRune: 2,
-      countdown: 60,
-      downspeed: 1,
-      isLanding: true,
-      damaku: [[
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 2, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 4, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 6, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 8, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 10, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 12, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 14, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 16, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 18, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 20, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 22, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 24, speed: 200, begin: 101},
-
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 1, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 3, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 5, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 7, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 9, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 11, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 13, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 15, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 17, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 19, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 21, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 23, speed: 200, begin: 101}
-      ],[
-        // null => sniper
-        {sprite: "eb2", interval: 30, direction: null, speed: 100, directionOffset: 0, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / 24 * 1, speed: 110, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 1, speed: 110, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, 
-        directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, 
-        directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
-      ]]
-    }
-  ])
-}
-
-action("boss02", (e) => {
-  if (e.pos.y < 80 && e.isLanding) {
-    e.pos.y += e.downspeed;
-    return;
-  } else {
-    e.isLanding = false;
-  }
-  e.time++;
-
-  e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
-  e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
-  
-  for (var x in e.damaku[e.maxRune - e.rune]) {
-    if ((e.time - e.damaku[e.maxRune - e.rune][x].begin) % e.damaku[e.maxRune - e.rune][x].interval == 0) {
-      play("se_tan01", {volume: 0.05});
-      if (e.damaku[e.maxRune - e.rune][x].direction != null) {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: e.damaku[e.maxRune - e.rune][x].direction,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      } else {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          rotate(getDirection(e.pos.x, e.pos.y) - e.damaku[e.maxRune - e.rune][x].directionOffset + Math.PI / 2) , 
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: Math.PI - getDirection(e.pos.x, e.pos.y) + e.damaku[e.maxRune - e.rune][x].directionOffset,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      }
-    }
-  }
-});
-
-collides("bullet", "boss02", (bullet, boss) => {
-  boss.life--;
-  destroy(bullet);
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
-  score.value += 11;
-  score.text = "Score   " + score.value;
-  if (boss.life <= 0) {
-    convertAllBullets();
-    play("bossDestroy", {volume : 0.5});
-    if (boss.rune <= 1) {
+  collides("bullet", "boss01", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
+    score.text = "Score   " + score.value;
+    if (boss.life <= 0) {
+      play("bossDestroy", {volume : 0.7});
+      convertAllBullets();
       destroy(boss);
       bossHPBar.hidden = true;
       bossRunes.hidden = true;
       isBossExist = false;
-      bgm.pause();
-      setTimeout(() => {
-        go("levelup", {
-          initScore: score.value,
-          life: life,
-          bomb: bomb,
-          power: power,
-          graze: graze,
-          itemCount: itemCount,
-          nextLevel: 2
-        });
-      }, 2000);
-    } else {
-      boss.rune--;
-      bossRunes.text = "Enemy " + (boss.rune - 1);
-      boss.life = boss.maxLife;
     }
-  }
-});
-
-action("small-powerup-point", (e) => {
-  var dx = player.pos.x - e.pos.x;
-  var dy = player.pos.y - e.pos.y;
-  var distance = Math.hypot(dx, dy);
-  e.move(SMALL_POWERUP_POINT_SPEED * dx / distance, SMALL_POWERUP_POINT_SPEED * dy / distance);
-});
-
-collides("player", "small-powerup-point", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  let getScore = parseInt(100 + height() - p.pos.y);
-  if (getScore > 800) {
-    getScore = 800;
-  }
-  getScore /= 10;
-  getScore = Math.floor(getScore);
-  score.value += getScore;
-  score.text = "Score   " + score.value;
-
-  destroy(pp);
-});
-
-function convertAllBullets() { // when defeating a rune of a boss
-  every("bossBullet1", (e) => { 
-    add([
-      sprite("smallpoint"),
-      pos(e.pos),
-      // strings here means a tag
-      "small-powerup-point"
-    ]);
-    destroy(e);
   });
-}
 
-const hudBorder = add([
-  // width, height
-  rect(209, 470),
-  pos(533, 240),
-  color(1, 1, 1),
-]);
-
-const hud = add([
-  // width, height
-  rect(207, 468),
-  pos(533, 240),
-  color(0, 0, 0),
-]);
-
-const score = add([
-  pos(width() - 200, 12),
-  text("Score   0"),
-  // all objects defaults origin to center, we want score text to be top left
-  origin("topleft"),
-  // plain objects becomes fields of score
-  {
-    value: 0,
-  },
-]);
-
-const powerText = add([
-  pos(width() - 200, 20),
-  text("Power   1.0"),
-  origin("topleft"),
-  {}
-])
-
-const lifeText = add([
-  pos(width() - 200, 28),
-  text("Player  " + life),
-  origin("topleft"),
-  {}
-])
-
-const grazeText = add([
-  pos(width() - 200, 36),
-  text("Graze   " + graze),
-  origin("topleft"),
-  {}
-])
-
-const itemText = add([
-  pos(width() - 200, 44),
-  text("Items   " + itemCount),
-  origin("topleft"),
-  {}
-])
-
-const bombText = add([
-  pos(width() - 200, 52),
-  text("Bomb    " + bomb),
-  origin("topleft"),
-  {}
-])
-
-function defeatAnEnemy(b, e) {
-  play("kill", {volume: 0.3});
-  destroy(b);
-  destroy(e);
-  score.value += 100;
-  score.text = "Score   " + score.value;
-
-  let rand = Math.random();
-  if (rand > 0.7) {
-    add([
-      sprite("point"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-point",
-    ]);
-  }
-
-  if (rand > 0.4 && rand <= 0.7) {
-    add([
-      sprite("power"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-power",
-    ]);
-  }
-
-  if (rand > 0.38 && rand <= 0.4) {
-    add([
-      sprite("bomb"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-bomb",
-    ]);
-  }
-}
-
-// if a "bullet" and a "enemy" collides, remove both of them
-collides("bullet", "enemyA", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyB", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyC", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyD", (b, e) => { defeatAnEnemy(b, e); });
-
-collides("player", "powerup-bomb", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  bomb++;
-  bombText.text = "Bomb    " + bomb;
-  destroy(pp);
-});
-
-collides("player", "powerup-point", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  let getScore = parseInt(100 + height() - p.pos.y);
-  if (getScore > 800) {
-    getScore = 800;
-  }
-  score.value += getScore;
-  score.text = "Score   " + score.value;
-  itemCount++;
-  itemText.text = "Items   " + itemCount;
-  destroy(pp);
-});
-
-collides("player", "powerup-power", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  if (power < 10) {
-    //power+=2.3;
-    power+=0.3;
-    powerText.text = "Power   " + power.toFixed(1);
-    if (power > 10) {
-      power = 10;
-      powerText.text = "Power   MAX";
-    }
-    
-  }
-  destroy(pp);
-});
-
-function playerHit(p, e) {
-  if (isInvincible || isRespawning) { return; }
-  isRespawning = true;
-  play("hit");
-  life--;
-  power--;
-  if (power < 1) { power = 1; }
-  lifeText.text = "Player  " + life;
-  powerText.text = "Power   " + power.toFixed(1);
-  if (life < 0) {
+  function spawnBoss2() {
     bgm.pause();
-    go("gameover", score);
-    return;
+    bgm.src = "./sounds/th06_09.mp3";
+    bgm.load();
+    bgm.play();
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 1";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss02", {
+        time: 0,
+        life: 500, // current life 
+        rune: 2, // runes
+        maxLife: 500, // life of each rune
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 2, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 4, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 6, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 8, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 10, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 12, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 14, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 16, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 18, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 20, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 22, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 24, speed: 200, begin: 101},
+
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 1, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 3, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 5, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 7, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 9, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 11, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 13, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 15, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 17, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 19, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 21, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 23, speed: 200, begin: 101}
+        ],[
+          // null => sniper
+          {sprite: "eb2", interval: 30, direction: null, speed: 100, directionOffset: 0, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / 24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+        ]]
+      }
+    ])
   }
-  destroy(e);
-  p.hidden = true;
-  player.hidden = true;
-  wait(2, () => {
-    player.pos.x = mapWidth() / 2;
-    player.pos.y = height() - 15;
-    p.hidden = false;
-    player.hidden = false;
-    isRespawning = false;
-    isInvincible = true;
-    wait(3, () => {
-      isInvincible = false;
-    });
+
+  action("boss02", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[e.maxRune - e.rune]) {
+      if ((e.time - e.damaku[e.maxRune - e.rune][x].begin) % e.damaku[e.maxRune - e.rune][x].interval == 0) {
+        play("se_tan01", {volume: 0.05});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y) - e.damaku[e.maxRune - e.rune][x].directionOffset + Math.PI / 2) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: Math.PI - getDirection(e.pos.x, e.pos.y) + e.damaku[e.maxRune - e.rune][x].directionOffset,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
+      }
+    }
   });
-}
 
-collides("playerHitJudgePoint", "enemyBullet1", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyBullet2", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "bossBullet1", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyA", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
-
-function playerGraze(player, bullet) {
-  if (!bullet.isGrazed) {
-    bullet.isGrazed = true;
-    graze++;
-    grazeText.text = "Graze   " + graze;
-    score.value += 10;
+  collides("bullet", "boss02", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
     score.text = "Score   " + score.value;
-  }
-}
-
-collides("player", "enemyBullet1", (e, eb) => { playerGraze(e, eb); });
-collides("player", "enemyBullet2", (e, eb) => { playerGraze(e, eb); });
-collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
-
-
-action("enemyA", (e) => {
-  e.move(0, ENEMY_SPEED);
-  e.time++;
-  if (e.time == 50) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
+    if (boss.life <= 0) {
+      convertAllBullets();
+      play("bossDestroy", {volume : 0.5});
+      if (boss.rune <= 1) {
+        destroy(boss);
+        bossHPBar.hidden = true;
+        bossRunes.hidden = true;
+        isBossExist = false;
+        bgm.pause();
+        setTimeout(() => {
+          go("levelup", {
+            initScore: score.value,
+            life: life,
+            bomb: bomb,
+            power: power,
+            graze: graze,
+            itemCount: itemCount,
+            nextLevel: 2
+          });
+        }, 2000);
+      } else {
+        boss.rune--;
+        bossRunes.text = "Enemy " + (boss.rune - 1);
+        boss.life = boss.maxLife;
       }
-    ]);
-  }
-  if (e.pos.y > height()) {
-    destroy(e);
-  }
-});
+    }
+  });
 
-action("enemyB", (e) => {
-  e.move(ENEMY_SPEED, 0);
-  e.time++;
-  if (e.time == 50) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
-      }
-    ]);
-  }
-  if (e.pos.x > mapWidth()) {
-    destroy(e);
-  }
-});
+  action("small-powerup-point", (e) => {
+    var dx = player.pos.x - e.pos.x;
+    var dy = player.pos.y - e.pos.y;
+    var distance = Math.hypot(dx, dy);
+    e.move(SMALL_POWERUP_POINT_SPEED * dx / distance, SMALL_POWERUP_POINT_SPEED * dy / distance);
+  });
 
-action("enemyC", (e) => {
-  e.time++;
-  e.move(-ENEMY_SPEED, 0);
-  if (e.time == 50) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
-      }
-    ]);
-  }
-  if (e.pos.x < 0) {
-    destroy(e);
-  }
-});
+  collides("player", "small-powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    getScore /= 10;
+    getScore = Math.floor(getScore);
+    score.value += getScore;
+    score.text = "Score   " + score.value;
 
-action("enemyD", (e) => {
-  e.move(0, ENEMY_SPEED);
-  e.time++;
-  if (e.time % 100 == 0) { // enemy shoot
-    let randDirection = rand(0, Math.PI * 2);
-    for (let i = 0; i < 6; i ++) {
-      add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
-        direction: randDirection + ((Math.PI / 3) * i),
-        isGrazed: false
-      }]);
+    destroy(pp);
+  });
+
+  function convertAllBullets() { // when defeating a rune of a boss
+    every("bossBullet1", (e) => { 
+      add([
+        sprite("smallpoint"),
+        pos(e.pos),
+        // strings here means a tag
+        "small-powerup-point"
+      ]);
+      destroy(e);
+    });
+  }
+
+  const hudBorder = add([
+    // width, height
+    rect(209, 470),
+    pos(533, 240),
+    color(1, 1, 1),
+  ]);
+
+  const hud = add([
+    // width, height
+    rect(207, 468),
+    pos(533, 240),
+    color(0, 0, 0),
+  ]);
+
+  const score = add([
+    pos(width() - 200, 12),
+    text("Score   0"),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: 0,
+    },
+  ]);
+
+  const powerText = add([
+    pos(width() - 200, 20),
+    text("Power   1.0"),
+    origin("topleft"),
+    {}
+  ])
+
+  const lifeText = add([
+    pos(width() - 200, 28),
+    text("Player  " + life),
+    origin("topleft"),
+    {}
+  ])
+
+  const grazeText = add([
+    pos(width() - 200, 36),
+    text("Graze   " + graze),
+    origin("topleft"),
+    {}
+  ])
+
+  const itemText = add([
+    pos(width() - 200, 44),
+    text("Items   " + itemCount),
+    origin("topleft"),
+    {}
+  ])
+
+  const bombText = add([
+    pos(width() - 200, 52),
+    text("Bomb    " + bomb),
+    origin("topleft"),
+    {}
+  ])
+
+  function defeatAnEnemy(b, e) {
+    play("kill", {volume: 0.3});
+    destroy(b);
+    destroy(e);
+    score.value += 100;
+    score.text = "Score   " + score.value;
+
+    let rand = Math.random();
+    if (rand > 0.7) {
+      add([
+        sprite("point"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-point",
+      ]);
+    }
+
+    if (rand > 0.4 && rand <= 0.7) {
+      add([
+        sprite("power"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-power",
+      ]);
+    }
+
+    if (rand > 0.38 && rand <= 0.4) {
+      add([
+        sprite("bomb"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-bomb",
+      ]);
     }
   }
-  if (e.pos.y > height()) {
+
+  // if a "bullet" and a "enemy" collides, remove both of them
+  collides("bullet", "enemyA", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyB", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyC", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyD", (b, e) => { defeatAnEnemy(b, e); });
+
+  collides("player", "powerup-bomb", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    bomb++;
+    bombText.text = "Bomb    " + bomb;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    score.value += getScore;
+    score.text = "Score   " + score.value;
+    itemCount++;
+    itemText.text = "Items   " + itemCount;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-power", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    if (power < 10) {
+      //power+=2.3;
+      power+=0.3;
+      powerText.text = "Power   " + power.toFixed(1);
+      if (power > 10) {
+        power = 10;
+        powerText.text = "Power   MAX";
+      }
+      
+    }
+    destroy(pp);
+  });
+
+  function playerHit(p, e) {
+    if (isInvincible || isRespawning) { return; }
+    isRespawning = true;
+    play("hit");
+    life--;
+    power--;
+    if (power < 1) { power = 1; }
+    lifeText.text = "Player  " + life;
+    powerText.text = "Power   " + power.toFixed(1);
+    if (life < 0) {
+      bgm.pause();
+      go("gameover", score);
+      return;
+    }
     destroy(e);
+    p.hidden = true;
+    player.hidden = true;
+    wait(2, () => {
+      player.pos.x = mapWidth() / 2;
+      player.pos.y = height() - 15;
+      p.hidden = false;
+      player.hidden = false;
+      isRespawning = false;
+      isInvincible = true;
+      wait(3, () => {
+        isInvincible = false;
+      });
+    });
   }
-});
 
-action("powerup-point", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POINT_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
+  collides("playerHitJudgePoint", "enemyBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyBullet2", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "bossBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyA", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
+
+  function playerGraze(player, bullet) {
+    if (!bullet.isGrazed) {
+      bullet.isGrazed = true;
+      graze++;
+      grazeText.text = "Graze   " + graze;
+      score.value += 10;
+      score.text = "Score   " + score.value;
+    }
   }
-});
 
-action("powerup-power", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
-  }
-});
+  collides("player", "enemyBullet1", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "enemyBullet2", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
+  
 
-action("powerup-bomb", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
-  }
-});
-
-action("enemyBullet1", (eb) => {
-  let currentSpeed = ENEMY_BULLET_SPEED;
-  eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("enemyBullet2", (eb) => {
-  let currentSpeed = ENEMY_BULLET_SPEED;
-  eb.move(Math.cos(eb.direction) * currentSpeed * -1, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("bossBullet1", (eb) => {
-  let currentSpeed = eb.speed;
-  eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("player", (p) => {
-  playerHitJudgePoint.pos.x = p.pos.x + 2;
-  playerHitJudgePoint.pos.y = p.pos.y - 2;
-});
-
-// spawn an enemy every 1 second
-loop(0.3, () => {
-  if (!isBossExist) {
-    position++;
-  }
-  if (boss1Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss1();
-  if (boss2Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss2();
-  if (enemyALocation.lastIndexOf(position) != -1) spawnEnemyA();
-  if (enemyBLocation.lastIndexOf(position) != -1) spawnEnemyB();
-  if (enemyCLocation.lastIndexOf(position) != -1) spawnEnemyC();
-  if (enemyDLocation.lastIndexOf(position) != -1) spawnEnemyD();
-});
-
-loop(0.075, () => {
-  if (isFiring && !isRespawning) {
-    play("fire", {volume: 0.3});
-    // console.log(isFocusing);
-    for (let i = 0; i < parseInt(power); i++) {
-      add([
-        sprite("bullet00"),
-        pos(player.pos),
-        // strings here means a tag
-        "bullet",
-        {
-          direction: Math.PI / 2 + ((isFocusing ? 0.03 : 0.07) * parseInt(i + 1 / 2) * Math.pow(-1, i))
+  action("enemyA", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time == 50) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
         }
       ]);
     }
-  } 
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyB", (e) => {
+    e.move(ENEMY_SPEED, 0);
+    e.time++;
+    if (e.time == 50) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x > mapWidth()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyC", (e) => {
+    e.time++;
+    e.move(-ENEMY_SPEED, 0);
+    if (e.time == 50) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x < 0) {
+      destroy(e);
+    }
+  });
+
+  action("enemyD", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time % 100 == 0) { // enemy shoot
+      let randDirection = rand(0, Math.PI * 2);
+      for (let i = 0; i < 6; i ++) {
+        add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
+          direction: randDirection + ((Math.PI / 3) * i),
+          isGrazed: false
+        }]);
+      }
+    }
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("powerup-point", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POINT_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-power", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-bomb", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("enemyBullet1", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("enemyBullet2", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed * -1, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("bossBullet1", (eb) => {
+    let currentSpeed = eb.speed;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("player", (p) => {
+    playerHitJudgePoint.pos.x = p.pos.x + 2;
+    playerHitJudgePoint.pos.y = p.pos.y - 2;
+  });
+
+  // spawn an enemy every 1 second
+  loop(0.3, () => {
+    if (!isBossExist) {
+      position++;
+    }
+    if (boss1Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss1();
+    if (boss2Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss2();
+    if (enemyALocation.lastIndexOf(position) != -1) spawnEnemyA();
+    if (enemyBLocation.lastIndexOf(position) != -1) spawnEnemyB();
+    if (enemyCLocation.lastIndexOf(position) != -1) spawnEnemyC();
+    if (enemyDLocation.lastIndexOf(position) != -1) spawnEnemyD();
+  });
+
+  loop(0.075, () => {
+    if (isFiring && !isRespawning) {
+      play("fire", {volume: 0.3});
+      // console.log(isFocusing);
+      for (let i = 0; i < parseInt(power); i++) {
+        add([
+          sprite("bullet00"),
+          pos(player.pos),
+          // strings here means a tag
+          "bullet",
+          {
+            direction: Math.PI / 2 + ((isFocusing ? 0.03 : 0.07) * parseInt(i + 1 / 2) * Math.pow(-1, i))
+          }
+        ]);
+      }
+    } 
+  });
 });
-});
-scene("level2", (args = {}) => {
-const BULLET_SPEED = 1000;
-const ENEMY_BULLET_SPEED = 250;
-const ENEMY_SPEED = 100;
-const PLAYER_SPEED = 200;
-const INITIAL_POWERUP_POINT_SPEED = -60;
-const INITIAL_POWERUP_POWER_SPEED = -50;
-const SMALL_POWERUP_POINT_SPEED = 1000;
+scene("level2", (args) => {
+  const BULLET_SPEED = 1000;
+  const ENEMY_BULLET_SPEED = 250;
+  const ENEMY_SPEED = 100;
+  const PLAYER_SPEED = 200;
+  const INITIAL_POWERUP_POINT_SPEED = -60;
+  const INITIAL_POWERUP_POWER_SPEED = -50;
+  const SMALL_POWERUP_POINT_SPEED = 1000;
 
-let isFiring = false;
-let power = args.power;
-let position = 0;
-let graze = args.graze;
-let life = args.life;
-let bomb = args.bomb;
-let itemCount = args.itemCount;
-let isRespawning = false;
-let isInvincible = false;
-let isFocusing = false;
-let isBossExist = false;
+  let isFiring = false;
+  let power = args.power;
+  let position = 0;
+  let graze = args.graze;
+  let life = args.life;
+  let bomb = args.bomb;
+  let itemCount = args.itemCount;
+  let isRespawning = false;
+  let isInvincible = false;
+  let isFocusing = false;
+  let isBossExist = false;
 
-gravity(200);
+  gravity(200);
 
-var bgm = document.getElementById("bgm");
+  var bgm = document.getElementById("bgm");
 
-bgm.ontimeupdate = function () {
-  if (bgm.currentTime >= bgm.duration - 0.2) {
-    bgm.currentTime = 7.5;
-    bgm.play();
+  bgm.ontimeupdate = function () {
+    if (bgm.currentTime >= bgm.duration - 0.2) {
+      bgm.currentTime = 7.5;
+      bgm.play();
+    }
   }
-}
 
-function mapWidth() {
-  return width() / 3 * 2;
-}
+  function mapWidth() {
+    return width() / 3 * 2;
+  }
 
-const MAX_BOSS_HP_BAR_WIDTH = mapWidth() - 110;
+  const MAX_BOSS_HP_BAR_WIDTH = mapWidth() - 110;
 
-function getDirection(ex, ey) {
-  var dx = player.pos.x - ex;
-  var dy = player.pos.y - ey;
-  var r = Math.hypot(player.pos.x - ex, player.pos.y - ey);
-  if (dx <= 0 && dy >= 0) return Math.asin(Math.abs(dy) / r);
-  if (dx >= 0 && dy >= 0) return Math.PI - Math.asin(Math.abs(dy) / r);
-  if (dx >= 0 && dy <= 0) return Math.asin(Math.abs(dy) / r) + Math.PI;
-  if (dx <= 0 && dy <= 0) return Math.PI * 2 - Math.asin(Math.abs(dy) / r);
-}
+  function getDirection(ex, ey) {
+    var dx = player.pos.x - ex;
+    var dy = player.pos.y - ey;
+    var r = Math.hypot(player.pos.x - ex, player.pos.y - ey);
+    if (dx <= 0 && dy >= 0) return Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy >= 0) return Math.PI - Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy <= 0) return Math.asin(Math.abs(dy) / r) + Math.PI;
+    if (dx <= 0 && dy <= 0) return Math.PI * 2 - Math.asin(Math.abs(dy) / r);
+  }
 
-const enemyALocation = [ 9, 12, 13, 14, 22, 23, 24, 
-                        109, 112, 113, 114, 122, 123, 124,
-                        209, 212, 213, 214, 222, 223, 224,
-                        // small boss
-                        309, 312, 313, 314, 322, 323, 324,
-                        409, 412, 413, 414, 422, 423, 424,
-                        509, 512, 513, 514, 522, 523, 524];
-const enemyBLocation = [32, 34, 36, 38, 40, 52, 54, 56, 58, 60,
-                      132, 134, 136, 138, 140, 152, 154, 156, 158, 160,
-                      232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+  const enemyALocation = [ 9, 12, 13, 14, 22, 23, 24, 
+                         109, 112, 113, 114, 122, 123, 124,
+                         209, 212, 213, 214, 222, 223, 224,
+                         // small boss
+                         309, 312, 313, 314, 322, 323, 324,
+                         409, 412, 413, 414, 422, 423, 424,
+                         509, 512, 513, 514, 522, 523, 524];
+  const enemyBLocation = [32, 34, 36, 38, 40, 52, 54, 56, 58, 60,
+                       132, 134, 136, 138, 140, 152, 154, 156, 158, 160,
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       // small boss
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       332, 334, 336, 338, 340, 352, 354, 356, 358, 360,
+                       432, 434, 436, 438, 440, 452, 454, 456, 458, 460];
+  const enemyCLocation = [31, 33, 35, 37, 39, 51, 53, 55, 57, 59,
+                      131, 133, 135, 137, 139, 151, 153, 155, 157, 159,
+                      231, 233, 235, 237, 239, 251, 253, 255, 257, 259,
                       // small boss
-                      232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
-                      332, 334, 336, 338, 340, 352, 354, 356, 358, 360,
-                      432, 434, 436, 438, 440, 452, 454, 456, 458, 460];
-const enemyCLocation = [31, 33, 35, 37, 39, 51, 53, 55, 57, 59,
-                    131, 133, 135, 137, 139, 151, 153, 155, 157, 159,
-                    231, 233, 235, 237, 239, 251, 253, 255, 257, 259,
-                    // small boss
-                    331, 333, 335, 337, 339, 351, 353, 355, 357, 359,
-                    431, 433, 435, 437, 439, 451, 453, 455, 457, 459,
-                    531, 533, 535, 537, 539, 551, 553, 555, 557, 559];
-const enemyDLocation = [72, 74, 76, 78, 80, 92, 94, 96, 98, 100,
-                    172, 174, 176, 178, 180, 192, 194, 196, 198, 200,
-                    272, 274, 276, 278, 280, 292, 294, 296, 298, 300,
-                    // small boss
-                    372, 374, 376, 378, 380, 392, 394, 396, 398, 400,
-                    472, 474, 476, 478, 480, 492, 494, 496, 498, 500,
-                    572, 574, 576, 578, 580, 592, 594, 596, 598, 600];
+                      331, 333, 335, 337, 339, 351, 353, 355, 357, 359,
+                      431, 433, 435, 437, 439, 451, 453, 455, 457, 459,
+                      531, 533, 535, 537, 539, 551, 553, 555, 557, 559];
+  const enemyDLocation = [72, 74, 76, 78, 80, 92, 94, 96, 98, 100,
+                      172, 174, 176, 178, 180, 192, 194, 196, 198, 200,
+                      272, 274, 276, 278, 280, 292, 294, 296, 298, 300,
+                      // small boss
+                      372, 374, 376, 378, 380, 392, 394, 396, 398, 400,
+                      472, 474, 476, 478, 480, 492, 494, 496, 498, 500,
+                      572, 574, 576, 578, 580, 592, 594, 596, 598, 600];
 
-const boss1Location = [301];
-// const boss2Location = [1];
-const boss2Location = [601];
+  const boss1Location = [301];
+  // const boss2Location = [1];
+  const boss2Location = [601];
+  
+  // play("th06_02");
 
-// play("th06_02");
+  layers([
+    "bg",
+    "game",
+    "ui",
+  ], "game");
 
-let player = add([
-  sprite("player01"),
-  pos(mapWidth() / 2, height() - 15),
-  scale(1),
-  "player"
-]);
-
-let playerHitJudgePoint = add([
-  sprite("hitpoint"),
-  pos(player.pos.x, player.pos.y),
-  scale(0.7),
-  "playerHitJudgePoint"
-]);
-
-let bossHPBar = add([
-  rect(MAX_BOSS_HP_BAR_WIDTH, 10),
-  pos(65, 10),
-  color(1,1,1),
-  origin("left")
-]);
-
-let bossRunes = add([
-  pos(5, 7),
-  text("Enemy 0"),
-  // all objects defaults origin to center, we want score text to be top left
-  origin("topleft"),
-  // plain objects becomes fields of score
-  {
-    value: 0,
-  },
-]);
-
-bossHPBar.hidden = true;
-bossRunes.hidden = true;
-
-keyDown("left", () => {
-  if (player.pos.x > 0) {
-    player.move(-PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
-  } else {
-    player.pos.x = 0;
+  for (var bgi = 0; bgi < 100; bgi++) {
+    add([
+      sprite("bg2"),
+      pos(0, 1000 * 1.68 - 1000 / 3 * bgi),
+      scale(1.68),
+      origin("botleft"),
+      layer("bg"),
+      "bg"
+    ]);
   }
-});
 
-keyDown("right", () => {
-  if (player.pos.x < mapWidth()) {
-    player.move(PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
-  } else {
-    player.pos.x = mapWidth();
-  }
-});
+  action("bg", (e) => {
+    e.move(0, 100);
+    if (e.pos.y >= 1500) {
+      destroy(e);
+    }
+  });
 
-keyDown("up", () => {
-  if (player.pos.y > 0) {
-    player.move(0, -PLAYER_SPEED * (isFocusing ? 0.5 : 1));
-  } else {
-    player.pos.y = 0;
-  }
-});
+  let player = add([
+    sprite("player00"),
+    pos(mapWidth() / 2, height() - 15),
+    scale(1),
+    "player"
+  ]);
+  player.play("idle");
 
-keyDown("down", () => {
-  if (player.pos.y < height()) {
-    player.move(0, PLAYER_SPEED * (isFocusing ? 0.5 : 1));
-  } else {
-    player.pos.y = height();
-  }
-});
+  let playerHitJudgePoint = add([
+    sprite("hitpoint"),
+    pos(player.pos.x, player.pos.y),
+    scale(0.7),
+    "playerHitJudgePoint"
+  ]);
 
-keyDown("x", () => { isFiring = true; });
+  let bossHPBar = add([
+    rect(MAX_BOSS_HP_BAR_WIDTH, 10),
+    pos(65, 10),
+    color(1,1,1),
+    origin("left")
+  ]);
 
-keyRelease("x", () => { isFiring = false; });
+  let bossRunes = add([
+    pos(5, 7),
+    text("Enemy 0"),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: 0,
+    },
+  ]);
 
-keyDown("z", () => { isFocusing = true;});
+  bossHPBar.hidden = true;
+  bossRunes.hidden = true;
 
-keyRelease("z", () => { isFocusing = false;}); // shift key has issues
+  keyDown("left", () => {
+    if (player.pos.x > 0) {
+      player.move(-PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = 0;
+    }
+  });
 
-keyPress("c", () => {
-  if (bomb > 0) {
-    play("bomb");
-    bomb--;
-    bombText.text = "Bomb    " + bomb;
-    destroyAll("enemyBullet1");
-    destroyAll("enemyBullet2");
-    destroyAll("bossBullet1");
-  }
-});
+  keyDown("right", () => {
+    if (player.pos.x < mapWidth()) {
+      player.move(PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = mapWidth();
+    }
+  });
+
+  keyDown("up", () => {
+    if (player.pos.y > 0) {
+      player.move(0, -PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = 0;
+    }
+  });
+
+  keyDown("down", () => {
+    if (player.pos.y < height()) {
+      player.move(0, PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = height();
+    }
+  });
+
+  keyDown("x", () => { isFiring = true; });
+
+  keyRelease("x", () => { isFiring = false; });
+
+  keyDown("z", () => { isFocusing = true;});
+
+  keyRelease("z", () => { isFocusing = false;}); // shift key has issues
+
+  keyPress("c", () => {
+    if (bomb > 0) {
+      play("bomb");
+      bomb--;
+      bombText.text = "Bomb    " + bomb;
+      destroyAll("enemyBullet1");
+      destroyAll("enemyBullet2");
+      destroyAll("bossBullet1");
+    }
+  });
 
 /*
-keyPress("space", () => {
-  add([
-    sprite("bullet00"),
-    pos(player.pos),
-    // strings here means a tag
-    "bullet",
-  ]);
-});
+  keyPress("space", () => {
+    add([
+      sprite("bullet00"),
+      pos(player.pos),
+      // strings here means a tag
+      "bullet",
+    ]);
+  });
 */
-// run this callback every frame for all objects with tag "bullet"
-action("bullet", (b) => {
-  b.move(Math.cos(b.direction) * BULLET_SPEED, -Math.sin(b.direction) * BULLET_SPEED);
-  // remove the bullet if it's out of the scene for performance
-  if (b.pos.y < 0 || b.pos.x < 0 || b.pos.x > mapWidth()) {
-    destroy(b);
-  }
-});
-
-function spawnEnemyA() { return add([  sprite("enemy00"),  pos(rand(0, mapWidth()), 0), "enemyA", {
-  time: 0
-}]);}
-function spawnEnemyB() { return add([  sprite("enemy00"),  pos(0, 48), "enemyB", {
-  time: 0
-}]);}
-function spawnEnemyC() { return add([  sprite("enemy00"),  pos(mapWidth(), 48), "enemyC", {
-  time: 0
-}]);}
-function spawnEnemyD() { return add([  sprite("enemy01"),  pos(rand(0, mapWidth()), 0), "enemyD", {
-  time: 0
-}]);}
-
-function spawnBoss1() {
-  isBossExist = true;
-  bossHPBar.hidden = false;
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
-  bossRunes.hidden = false;
-  bossRunes.text = "Enemy 0";
-  return add([
-    sprite("boss01"),
-    pos(mapWidth() / 2, 0),
-    "boss01", {
-      time: 0,
-      life: 200,
-      rune: 2, // runes
-      maxLife: 200,
-      maxRune: 2,
-      countdown: 60,
-      downspeed: 1,
-      isLanding: true,
-      damaku: [[
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 2, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 4, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 6, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 8, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 10, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 12, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 14, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 16, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 18, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 20, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 22, speed: 100, begin: 111},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 24, speed: 100, begin: 111},
-
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 101},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 101},
-
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 121},
-        {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 121},
-      ]]
+  // run this callback every frame for all objects with tag "bullet"
+  action("bullet", (b) => {
+    b.move(Math.cos(b.direction) * BULLET_SPEED, -Math.sin(b.direction) * BULLET_SPEED);
+    // remove the bullet if it's out of the scene for performance
+    if (b.pos.y < 0 || b.pos.x < 0 || b.pos.x > mapWidth()) {
+      destroy(b);
     }
-  ])
-}
+  });
 
-action("boss01", (e) => {
-  if (e.pos.y < 80 && e.isLanding) {
-    e.pos.y += e.downspeed;
-    return;
-  } else {
-    e.isLanding = false;
+  function spawnEnemyA() { var e = add([  sprite("enemy02"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyA", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyB() { var e = add([  sprite("enemy02"), scale(0.7),  pos(0, 48), "enemyB", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyC() { var e = add([  sprite("enemy02"), scale(0.7),  pos(mapWidth(), 48), "enemyC", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyD() { var e = add([  sprite("enemy03"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyD", {
+    time: 0
+  }]); e.play("idle"); return e;}
+
+  function spawnBoss1() {
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 0";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss01", {
+        time: 0,
+        life: 200,
+        rune: 2, // runes
+        maxLife: 200,
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 2, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 4, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 6, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 8, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 10, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 12, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 14, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 16, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 18, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 20, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 22, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 24, speed: 100, begin: 111},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 101},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 121},
+        ]]
+      }
+    ])
   }
-  e.time++;
 
-  e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
-  e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
-  
-  for (var x in e.damaku[0]) {
-    if ((e.time - e.damaku[0][x].begin) % e.damaku[0][x].interval == 0) {
-      play("se_tan01", {volume: 0.02});
-      if (e.damaku[e.maxRune - e.rune][x].direction != null) {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: e.damaku[e.maxRune - e.rune][x].direction,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      } else {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          rotate(getDirection(e.pos.x, e.pos.y)) , 
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: getDirection(e.pos.x, e.pos.y),
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
+  action("boss01", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[0]) {
+      if ((e.time - e.damaku[0][x].begin) % e.damaku[0][x].interval == 0) {
+        play("se_tan01", {volume: 0.02});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y)) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: getDirection(e.pos.x, e.pos.y),
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
       }
     }
-  }
-  
-});
+    
+  });
 
-collides("bullet", "boss01", (bullet, boss) => {
-  boss.life--;
-  destroy(bullet);
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
-  score.value += 11;
-  score.text = "Score   " + score.value;
-  if (boss.life <= 0) {
-    play("bossDestroy", {volume : 0.7});
-    convertAllBullets();
-    destroy(boss);
-    bossHPBar.hidden = true;
-    bossRunes.hidden = true;
-    isBossExist = false;
-  }
-});
-
-function spawnBoss2() {
-  bgm.pause();
-  bgm.src = "./sounds/th06_09.mp3";
-  bgm.load();
-  bgm.play();
-  isBossExist = true;
-  bossHPBar.hidden = false;
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
-  bossRunes.hidden = false;
-  bossRunes.text = "Enemy 1";
-  return add([
-    sprite("boss01"),
-    pos(mapWidth() / 2, 0),
-    "boss02", {
-      time: 0,
-      life: 500, // current life 
-      rune: 2, // runes
-      maxLife: 500, // life of each rune
-      maxRune: 2,
-      countdown: 60,
-      downspeed: 1,
-      isLanding: true,
-      damaku: [[
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 2, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 4, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 6, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 8, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 10, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 12, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 14, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 16, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 18, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 20, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 22, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 24, speed: 200, begin: 101},
-
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 1, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 3, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 5, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 7, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 9, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 11, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 13, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 15, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 17, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 19, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 21, speed: 200, begin: 101},
-        {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 23, speed: 200, begin: 101}
-      ],[
-        // null => sniper
-        {sprite: "eb2", interval: 30, direction: null, speed: 100, directionOffset: 0, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / 24 * 1, speed: 110, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 1, speed: 110, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, 
-        directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, 
-        directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
-        {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
-      ]]
-    }
-  ])
-}
-
-action("boss02", (e) => {
-  if (e.pos.y < 80 && e.isLanding) {
-    e.pos.y += e.downspeed;
-    return;
-  } else {
-    e.isLanding = false;
-  }
-  e.time++;
-
-  e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
-  e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
-  
-  for (var x in e.damaku[e.maxRune - e.rune]) {
-    if ((e.time - e.damaku[e.maxRune - e.rune][x].begin) % e.damaku[e.maxRune - e.rune][x].interval == 0) {
-      play("se_tan01", {volume: 0.05});
-      if (e.damaku[e.maxRune - e.rune][x].direction != null) {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: e.damaku[e.maxRune - e.rune][x].direction,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      } else {
-        add([  
-          sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
-          rotate(getDirection(e.pos.x, e.pos.y) - e.damaku[e.maxRune - e.rune][x].directionOffset + Math.PI / 2) , 
-          pos(e.pos.x, e.pos.y), "bossBullet1", {
-            direction: Math.PI - getDirection(e.pos.x, e.pos.y) + e.damaku[e.maxRune - e.rune][x].directionOffset,
-            speed: e.damaku[e.maxRune - e.rune][x].speed,
-            isGrazed: false
-          }
-        ]);
-      }
-    }
-  }
-});
-
-collides("bullet", "boss02", (bullet, boss) => {
-  boss.life--;
-  destroy(bullet);
-  bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
-  score.value += 11;
-  score.text = "Score   " + score.value;
-  if (boss.life <= 0) {
-    convertAllBullets();
-    play("bossDestroy", {volume : 0.5});
-    if (boss.rune <= 1) {
+  collides("bullet", "boss01", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
+    score.text = "Score   " + score.value;
+    if (boss.life <= 0) {
+      play("bossDestroy", {volume : 0.7});
+      convertAllBullets();
       destroy(boss);
       bossHPBar.hidden = true;
       bossRunes.hidden = true;
       isBossExist = false;
-      bgm.pause();
-      // debugger;
-      setTimeout(() => {
-        /*
-        go("levelup", {
-          initScore: score.value,
-          life: life,
-          bomb: bomb,
-          power: power,
-          graze: graze,
-          itemCount: itemCount,
-          nextLevel: 2
-        });
-        */
+    }
+  });
+
+  function spawnBoss2() {
+    bgm.pause();
+    bgm.src = "./sounds/th06_09.mp3";
+    bgm.load();
+    bgm.play();
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 1";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss02", {
+        time: 0,
+        life: 500, // current life 
+        rune: 2, // runes
+        maxLife: 500, // life of each rune
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 2, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 4, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 6, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 8, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 10, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 12, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 14, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 16, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 18, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 20, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 22, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 24, speed: 200, begin: 101},
+
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 1, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 3, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 5, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 7, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 9, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 11, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 13, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 15, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 17, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 19, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 21, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 23, speed: 200, begin: 101}
+        ],[
+          // null => sniper
+          {sprite: "eb2", interval: 30, direction: null, speed: 100, directionOffset: 0, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / 24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+        ]]
+      }
+    ])
+  }
+
+  action("boss02", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[e.maxRune - e.rune]) {
+      if ((e.time - e.damaku[e.maxRune - e.rune][x].begin) % e.damaku[e.maxRune - e.rune][x].interval == 0) {
+        play("se_tan01", {volume: 0.05});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y) - e.damaku[e.maxRune - e.rune][x].directionOffset + Math.PI / 2) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: Math.PI - getDirection(e.pos.x, e.pos.y) + e.damaku[e.maxRune - e.rune][x].directionOffset,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
+      }
+    }
+  });
+
+  collides("bullet", "boss02", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
+    score.text = "Score   " + score.value;
+    if (boss.life <= 0) {
+      convertAllBullets();
+      play("bossDestroy", {volume : 0.5});
+      if (boss.rune <= 1) {
+        destroy(boss);
+        bossHPBar.hidden = true;
+        bossRunes.hidden = true;
+        isBossExist = false;
         bgm.pause();
+        // debugger;
+        setTimeout(() => {
+          go("levelup", {
+            initScore: score.value,
+            life: life,
+            bomb: bomb,
+            power: power,
+            graze: graze,
+            itemCount: itemCount,
+            nextLevel: 3
+          });
+          /*
+          bgm.pause();
+          bgm.src = "./sounds/th06_16.mp3";
+          bgm.load();
+          bgm.play();
+          go("tbc", score.value);
+          */
+        }, 2000);
+      } else {
+        boss.rune--;
+        bossRunes.text = "Enemy " + (boss.rune - 1);
+        boss.life = boss.maxLife;
+      }
+    }
+  });
+
+  action("small-powerup-point", (e) => {
+    var dx = player.pos.x - e.pos.x;
+    var dy = player.pos.y - e.pos.y;
+    var distance = Math.hypot(dx, dy);
+    e.move(SMALL_POWERUP_POINT_SPEED * dx / distance, SMALL_POWERUP_POINT_SPEED * dy / distance);
+  });
+
+  collides("player", "small-powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    getScore /= 10;
+    getScore = Math.floor(getScore);
+    score.value += getScore;
+    score.text = "Score   " + score.value;
+
+    destroy(pp);
+  });
+
+  function convertAllBullets() { // when defeating a rune of a boss
+    every("bossBullet1", (e) => { 
+      add([
+        sprite("smallpoint"),
+        pos(e.pos),
+        // strings here means a tag
+        "small-powerup-point"
+      ]);
+      destroy(e);
+    });
+  }
+
+  function removeAllBullets() { // bomb
+
+  }
+
+  const hudBorder = add([
+    // width, height
+    rect(209, 470),
+    pos(533, 240),
+    color(1, 1, 1),
+  ]);
+
+  const hud = add([
+    // width, height
+    rect(207, 468),
+    pos(533, 240),
+    color(0, 0, 0),
+  ]);
+
+  const score = add([
+    pos(width() - 200, 12),
+    text("Score   " + args.initScore),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: args.initScore,
+    },
+  ]);
+
+  const powerText = add([
+    pos(width() - 200, 20),
+    text("Power   " + (power >= 10 ? "MAX" : power)),
+    origin("topleft"),
+    {}
+  ])
+
+  const lifeText = add([
+    pos(width() - 200, 28),
+    text("Player  " + life),
+    origin("topleft"),
+    {}
+  ])
+
+  const grazeText = add([
+    pos(width() - 200, 36),
+    text("Graze   " + graze),
+    origin("topleft"),
+    {}
+  ])
+
+  const itemText = add([
+    pos(width() - 200, 44),
+    text("Items   " + itemCount),
+    origin("topleft"),
+    {}
+  ])
+
+  const bombText = add([
+    pos(width() - 200, 52),
+    text("Bomb    " + bomb),
+    origin("topleft"),
+    {}
+  ])
+
+  function defeatAnEnemy(b, e) {
+    play("kill", {volume: 0.3});
+    destroy(b);
+    destroy(e);
+    score.value += 100;
+    score.text = "Score   " + score.value;
+
+    let rand = Math.random();
+    if (rand > 0.7) {
+      add([
+        sprite("point"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-point",
+      ]);
+    }
+
+    if (rand > 0.4 && rand <= 0.7) {
+      add([
+        sprite("power"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-power",
+      ]);
+    }
+
+    if (rand > 0.38 && rand <= 0.4) {
+      add([
+        sprite("bomb"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-bomb",
+      ]);
+    }
+  }
+
+  // if a "bullet" and a "enemy" collides, remove both of them
+  collides("bullet", "enemyA", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyB", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyC", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyD", (b, e) => { defeatAnEnemy(b, e); });
+
+  collides("player", "powerup-bomb", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    bomb++;
+    bombText.text = "Bomb    " + bomb;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    score.value += getScore;
+    score.text = "Score   " + score.value;
+    itemCount++;
+    itemText.text = "Items   " + itemCount;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-power", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    if (power < 10) {
+      //power+=2.3;
+      power+=0.3;
+      powerText.text = "Power   " + power.toFixed(1);
+      if (power > 10) {
+        power = 10;
+        powerText.text = "Power   MAX";
+      }
+      
+    }
+    destroy(pp);
+  });
+
+  function playerHit(p, e) {
+    if (isInvincible || isRespawning) { return; }
+    isRespawning = true;
+    play("hit");
+    life--;
+    power--;
+    if (power < 1) { power = 1; }
+    lifeText.text = "Player  " + life;
+    powerText.text = "Power   " + power.toFixed(1);
+    if (life < 0) {
+      bgm.pause();
+      go("gameover", score);
+      return;
+    }
+    destroy(e);
+    p.hidden = true;
+    player.hidden = true;
+    wait(2, () => {
+      player.pos.x = mapWidth() / 2;
+      player.pos.y = height() - 15;
+      p.hidden = false;
+      player.hidden = false;
+      isRespawning = false;
+      isInvincible = true;
+      wait(3, () => {
+        isInvincible = false;
+      });
+    });
+  }
+
+  collides("playerHitJudgePoint", "enemyBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyBullet2", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "bossBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyA", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
+
+
+  function playerGraze(player, bullet) {
+    if (!bullet.isGrazed) {
+      bullet.isGrazed = true;
+      graze++;
+      grazeText.text = "Graze   " + graze;
+      score.value += 10;
+      score.text = "Score   " + score.value;
+    }
+  }
+
+  collides("player", "enemyBullet1", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "enemyBullet2", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
+  
+
+  action("enemyA", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time % 10 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyB", (e) => {
+    e.move(ENEMY_SPEED, 0);
+    e.time++;
+    if (e.time % 10 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x > mapWidth()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyC", (e) => {
+    e.time++;
+    e.move(-ENEMY_SPEED, 0);
+    if (e.time % 10 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x < 0) {
+      destroy(e);
+    }
+  });
+
+  action("enemyD", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time % 50 == 0) { // enemy shoot
+      let randDirection = rand(0, Math.PI * 2);
+      for (let i = 0; i < 6; i ++) {
+        add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
+          direction: randDirection + ((Math.PI / 3) * i),
+          isGrazed: false
+        }]);
+      }
+    }
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("powerup-point", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POINT_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-power", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-bomb", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("enemyBullet1", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("enemyBullet2", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed * -1, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("bossBullet1", (eb) => {
+    let currentSpeed = eb.speed;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("player", (p) => {
+    playerHitJudgePoint.pos.x = p.pos.x + 2;
+    playerHitJudgePoint.pos.y = p.pos.y - 2;
+  });
+
+  // spawn an enemy every 1 second
+  loop(0.3, () => {
+    if (!isBossExist) {
+      position++;
+    }
+    if (boss1Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss1();
+    if (boss2Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss2();
+    if (enemyALocation.lastIndexOf(position) != -1) spawnEnemyA();
+    if (enemyBLocation.lastIndexOf(position) != -1) spawnEnemyB();
+    if (enemyCLocation.lastIndexOf(position) != -1) spawnEnemyC();
+    if (enemyDLocation.lastIndexOf(position) != -1) spawnEnemyD();
+  });
+
+  loop(0.075, () => {
+    if (isFiring && !isRespawning) {
+      play("fire", {volume: 0.3});
+      // console.log(isFocusing);
+      for (let i = 0; i < parseInt(power); i++) {
+        add([
+          sprite("bullet00"),
+          pos(player.pos),
+          // strings here means a tag
+          "bullet",
+          {
+            direction: Math.PI / 2 + ((isFocusing ? 0.03 : 0.07) * parseInt(i + 1 / 2) * Math.pow(-1, i))
+          }
+        ]);
+      }
+    } 
+  });
+});
+scene("level3", (args) => {
+  const BULLET_SPEED = 1000;
+  const ENEMY_BULLET_SPEED = 150;
+  const ENEMY_SPEED = 100;
+  const PLAYER_SPEED = 200;
+  const INITIAL_POWERUP_POINT_SPEED = -60;
+  const INITIAL_POWERUP_POWER_SPEED = -50;
+  const SMALL_POWERUP_POINT_SPEED = 1000;
+
+  let isFiring = false;
+  let power = args.power;
+  let position = 0;
+  let graze = args.graze;
+  let life = args.life;
+  let bomb = args.bomb;
+  let itemCount = args.itemCount;
+  let isRespawning = false;
+  let isInvincible = false;
+  let isFocusing = false;
+  let isBossExist = false;
+
+  gravity(200);
+
+  var bgm = document.getElementById("bgm");
+
+  bgm.ontimeupdate = function () {
+    if (bgm.currentTime >= bgm.duration - 0.2) {
+      bgm.currentTime = 47;
+      bgm.play();
+    }
+  }
+
+  function mapWidth() {
+    return width() / 3 * 2;
+  }
+
+  const MAX_BOSS_HP_BAR_WIDTH = mapWidth() - 110;
+
+  function getDirection(ex, ey) {
+    var dx = player.pos.x - ex;
+    var dy = player.pos.y - ey;
+    var r = Math.hypot(player.pos.x - ex, player.pos.y - ey);
+    if (dx <= 0 && dy >= 0) return Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy >= 0) return Math.PI - Math.asin(Math.abs(dy) / r);
+    if (dx >= 0 && dy <= 0) return Math.asin(Math.abs(dy) / r) + Math.PI;
+    if (dx <= 0 && dy <= 0) return Math.PI * 2 - Math.asin(Math.abs(dy) / r);
+  }
+
+  const enemyALocation = [ 9, 12, 13, 14, 22, 23, 24, 
+                         109, 112, 113, 114, 122, 123, 124,
+                         209, 212, 213, 214, 222, 223, 224,
+                         // small boss
+                         309, 312, 313, 314, 322, 323, 324,
+                         409, 412, 413, 414, 422, 423, 424,
+                         509, 512, 513, 514, 522, 523, 524];
+  const enemyBLocation = [32, 34, 36, 38, 40, 52, 54, 56, 58, 60,
+                       132, 134, 136, 138, 140, 152, 154, 156, 158, 160,
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       // small boss
+                       232, 234, 236, 238, 240, 252, 254, 256, 258, 260,
+                       332, 334, 336, 338, 340, 352, 354, 356, 358, 360,
+                       432, 434, 436, 438, 440, 452, 454, 456, 458, 460];
+  const enemyCLocation = [31, 33, 35, 37, 39, 51, 53, 55, 57, 59,
+                      131, 133, 135, 137, 139, 151, 153, 155, 157, 159,
+                      231, 233, 235, 237, 239, 251, 253, 255, 257, 259,
+                      // small boss
+                      331, 333, 335, 337, 339, 351, 353, 355, 357, 359,
+                      431, 433, 435, 437, 439, 451, 453, 455, 457, 459,
+                      531, 533, 535, 537, 539, 551, 553, 555, 557, 559];
+  const enemyDLocation = [72, 74, 76, 78, 80, 92, 94, 96, 98, 100,
+                      172, 174, 176, 178, 180, 192, 194, 196, 198, 200,
+                      272, 274, 276, 278, 280, 292, 294, 296, 298, 300,
+                      // small boss
+                      372, 374, 376, 378, 380, 392, 394, 396, 398, 400,
+                      472, 474, 476, 478, 480, 492, 494, 496, 498, 500,
+                      572, 574, 576, 578, 580, 592, 594, 596, 598, 600];
+
+  const boss1Location = [301];
+  // const boss2Location = [1];
+  const boss2Location = [601];
+  
+  layers([
+    "bg",
+    "game",
+    "ui",
+  ], "game");
+
+  for (var bgi = 0; bgi < 100; bgi++) {
+    add([
+      sprite("bg3"),
+      pos(0, 1000 * 0.76 - 1000 * 0.76 * bgi),
+      scale(0.76),
+      origin("botleft"),
+      layer("bg"),
+      "bg"
+    ]);
+  }
+
+  action("bg", (e) => {
+    e.move(0, 100);
+    if (e.pos.y >= 1500) {
+      destroy(e);
+    }
+  });
+
+  let player = add([
+    sprite("player00"),
+    pos(mapWidth() / 2, height() - 15),
+    scale(1),
+    "player"
+  ]);
+  player.play("idle");
+
+  let playerHitJudgePoint = add([
+    sprite("hitpoint"),
+    pos(player.pos.x, player.pos.y),
+    scale(0.7),
+    "playerHitJudgePoint"
+  ]);
+
+  let bossHPBar = add([
+    rect(MAX_BOSS_HP_BAR_WIDTH, 10),
+    pos(65, 10),
+    color(1,1,1),
+    origin("left")
+  ]);
+
+  let bossRunes = add([
+    pos(5, 7),
+    text("Enemy 0"),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: 0,
+    },
+  ]);
+
+  bossHPBar.hidden = true;
+  bossRunes.hidden = true;
+
+  keyDown("left", () => {
+    if (player.pos.x > 0) {
+      player.move(-PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = 0;
+    }
+  });
+
+  keyDown("right", () => {
+    if (player.pos.x < mapWidth()) {
+      player.move(PLAYER_SPEED * (isFocusing ? 0.5 : 1), 0);
+    } else {
+      player.pos.x = mapWidth();
+    }
+  });
+
+  keyDown("up", () => {
+    if (player.pos.y > 0) {
+      player.move(0, -PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = 0;
+    }
+  });
+
+  keyDown("down", () => {
+    if (player.pos.y < height()) {
+      player.move(0, PLAYER_SPEED * (isFocusing ? 0.5 : 1));
+    } else {
+      player.pos.y = height();
+    }
+  });
+
+  keyDown("x", () => { isFiring = true; });
+
+  keyRelease("x", () => { isFiring = false; });
+
+  keyDown("z", () => { isFocusing = true;});
+
+  keyRelease("z", () => { isFocusing = false;}); // shift key has issues
+
+  keyPress("c", () => {
+    if (bomb > 0) {
+      play("bomb");
+      bomb--;
+      bombText.text = "Bomb    " + bomb;
+      destroyAll("enemyBullet1");
+      destroyAll("enemyBullet2");
+      destroyAll("bossBullet1");
+    }
+  });
+
+/*
+  keyPress("space", () => {
+    add([
+      sprite("bullet00"),
+      pos(player.pos),
+      // strings here means a tag
+      "bullet",
+    ]);
+  });
+*/
+  // run this callback every frame for all objects with tag "bullet"
+  action("bullet", (b) => {
+    b.move(Math.cos(b.direction) * BULLET_SPEED, -Math.sin(b.direction) * BULLET_SPEED);
+    // remove the bullet if it's out of the scene for performance
+    if (b.pos.y < 0 || b.pos.x < 0 || b.pos.x > mapWidth()) {
+      destroy(b);
+    }
+  });
+
+  function spawnEnemyA() { var e = add([  sprite("enemy02"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyA", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyB() { var e = add([  sprite("enemy02"), scale(0.7),  pos(0, 48), "enemyB", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyC() { var e = add([  sprite("enemy02"), scale(0.7),  pos(mapWidth(), 48), "enemyC", {
+    time: 0
+  }]); e.play("idle"); return e;}
+  function spawnEnemyD() { var e = add([  sprite("enemy03"), scale(0.7),  pos(rand(0, mapWidth()), 0), "enemyD", {
+    time: 0
+  }]); e.play("idle"); return e;}
+
+  function spawnBoss1() {
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 0";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss01", {
+        time: 0,
+        life: 200,
+        rune: 2, // runes
+        maxLife: 200,
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 2, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 4, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 6, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 8, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 10, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 12, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 14, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 16, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 18, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 20, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 22, speed: 100, begin: 111},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 24, speed: 100, begin: 111},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 101},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 101},
+
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 1, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 3, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 5, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 7, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 9, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 11, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 13, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 15, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 17, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 19, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 21, speed: 100, begin: 121},
+          {sprite: "eb1", interval: 100, direction: Math.PI / 12 * 23, speed: 100, begin: 121},
+        ]]
+      }
+    ])
+  }
+
+  action("boss01", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[0]) {
+      if ((e.time - e.damaku[0][x].begin) % e.damaku[0][x].interval == 0) {
+        play("se_tan01", {volume: 0.02});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y)) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: getDirection(e.pos.x, e.pos.y),
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
+      }
+    }
+    
+  });
+
+  collides("bullet", "boss01", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
+    score.text = "Score   " + score.value;
+    if (boss.life <= 0) {
+      play("bossDestroy", {volume : 0.7});
+      convertAllBullets();
+      destroy(boss);
+      bossHPBar.hidden = true;
+      bossRunes.hidden = true;
+      isBossExist = false;
+    }
+  });
+
+  function spawnBoss2() {
+    bgm.pause();
+    bgm.src = "./sounds/th06_09.mp3";
+    bgm.load();
+    bgm.play();
+    isBossExist = true;
+    bossHPBar.hidden = false;
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH;
+    bossRunes.hidden = false;
+    bossRunes.text = "Enemy 1";
+    return add([
+      sprite("boss01"),
+      pos(mapWidth() / 2, 0),
+      "boss02", {
+        time: 0,
+        life: 500, // current life 
+        rune: 2, // runes
+        maxLife: 500, // life of each rune
+        maxRune: 2,
+        countdown: 60,
+        downspeed: 1,
+        isLanding: true,
+        damaku: [[
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 2, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 4, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 6, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 8, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 10, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 12, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 14, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 16, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 18, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 20, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 22, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 24, speed: 200, begin: 101},
+
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 1, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 3, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 5, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 7, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 9, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 11, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 13, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 15, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 17, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 19, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 21, speed: 200, begin: 101},
+          {sprite: "eb1", interval: 50, direction: Math.PI / 12 * 23, speed: 200, begin: 101}
+        ],[
+          // null => sniper
+          {sprite: "eb2", interval: 30, direction: null, speed: 100, directionOffset: 0, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / 24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 1, speed: 110, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 2, speed: 105, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 3, speed: 115, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, 
+          directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+          {sprite: "eb2", interval: 30, direction: null, directionOffset: Math.PI / -24 * 4, speed: 120, begin: 111},
+        ]]
+      }
+    ])
+  }
+
+  action("boss02", (e) => {
+    if (e.pos.y < 80 && e.isLanding) {
+      e.pos.y += e.downspeed;
+      return;
+    } else {
+      e.isLanding = false;
+    }
+    e.time++;
+
+    e.pos.x = mapWidth() / 2 + Math.cos(e.time / 100 + Math.PI / 2) * 100;
+    e.pos.y = 60 + Math.sin(e.time / 100 + Math.PI / 2) * 20;
+    
+    for (var x in e.damaku[e.maxRune - e.rune]) {
+      if ((e.time - e.damaku[e.maxRune - e.rune][x].begin) % e.damaku[e.maxRune - e.rune][x].interval == 0) {
+        play("se_tan01", {volume: 0.05});
+        if (e.damaku[e.maxRune - e.rune][x].direction != null) {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: e.damaku[e.maxRune - e.rune][x].direction,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        } else {
+          add([  
+            sprite(e.damaku[e.maxRune - e.rune][x].sprite),  
+            rotate(getDirection(e.pos.x, e.pos.y) - e.damaku[e.maxRune - e.rune][x].directionOffset + Math.PI / 2) , 
+            pos(e.pos.x, e.pos.y), "bossBullet1", {
+              direction: Math.PI - getDirection(e.pos.x, e.pos.y) + e.damaku[e.maxRune - e.rune][x].directionOffset,
+              speed: e.damaku[e.maxRune - e.rune][x].speed,
+              isGrazed: false
+            }
+          ]);
+        }
+      }
+    }
+  });
+
+  collides("bullet", "boss02", (bullet, boss) => {
+    boss.life--;
+    destroy(bullet);
+    bossHPBar.width = MAX_BOSS_HP_BAR_WIDTH * boss.life / boss.maxLife;
+    score.value += 11;
+    score.text = "Score   " + score.value;
+    if (boss.life <= 0) {
+      convertAllBullets();
+      play("bossDestroy", {volume : 0.5});
+      if (boss.rune <= 1) {
+        destroy(boss);
+        bossHPBar.hidden = true;
+        bossRunes.hidden = true;
+        isBossExist = false;
+        bgm.pause();
+        // debugger;
+        setTimeout(() => {
+          go("levelup", {
+            initScore: score.value,
+            life: life,
+            bomb: bomb,
+            power: power,
+            graze: graze,
+            itemCount: itemCount,
+            nextLevel: 4
+          });
+        }, 2000);
+      } else {
+        boss.rune--;
+        bossRunes.text = "Enemy " + (boss.rune - 1);
+        boss.life = boss.maxLife;
+      }
+    }
+  });
+
+  action("small-powerup-point", (e) => {
+    var dx = player.pos.x - e.pos.x;
+    var dy = player.pos.y - e.pos.y;
+    var distance = Math.hypot(dx, dy);
+    e.move(SMALL_POWERUP_POINT_SPEED * dx / distance, SMALL_POWERUP_POINT_SPEED * dy / distance);
+  });
+
+  collides("player", "small-powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    getScore /= 10;
+    getScore = Math.floor(getScore);
+    score.value += getScore;
+    score.text = "Score   " + score.value;
+
+    destroy(pp);
+  });
+
+  function convertAllBullets() { // when defeating a rune of a boss
+    every("bossBullet1", (e) => { 
+      add([
+        sprite("smallpoint"),
+        pos(e.pos),
+        // strings here means a tag
+        "small-powerup-point"
+      ]);
+      destroy(e);
+    });
+  }
+
+  function removeAllBullets() { // bomb
+
+  }
+
+  const hudBorder = add([
+    // width, height
+    rect(209, 470),
+    pos(533, 240),
+    color(1, 1, 1),
+  ]);
+
+  const hud = add([
+    // width, height
+    rect(207, 468),
+    pos(533, 240),
+    color(0, 0, 0),
+  ]);
+
+  const score = add([
+    pos(width() - 200, 12),
+    text("Score   " + args.initScore),
+    // all objects defaults origin to center, we want score text to be top left
+    origin("topleft"),
+    // plain objects becomes fields of score
+    {
+      value: args.initScore,
+    },
+  ]);
+
+  const powerText = add([
+    pos(width() - 200, 20),
+    text("Power   " + (power >= 10 ? "MAX" : power)),
+    origin("topleft"),
+    {}
+  ])
+
+  const lifeText = add([
+    pos(width() - 200, 28),
+    text("Player  " + life),
+    origin("topleft"),
+    {}
+  ])
+
+  const grazeText = add([
+    pos(width() - 200, 36),
+    text("Graze   " + graze),
+    origin("topleft"),
+    {}
+  ])
+
+  const itemText = add([
+    pos(width() - 200, 44),
+    text("Items   " + itemCount),
+    origin("topleft"),
+    {}
+  ])
+
+  const bombText = add([
+    pos(width() - 200, 52),
+    text("Bomb    " + bomb),
+    origin("topleft"),
+    {}
+  ])
+
+  function defeatAnEnemy(b, e) {
+    play("kill", {volume: 0.3});
+    destroy(b);
+    destroy(e);
+    score.value += 100;
+    score.text = "Score   " + score.value;
+
+    let rand = Math.random();
+    if (rand > 0.7) {
+      add([
+        sprite("point"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-point",
+      ]);
+    }
+
+    if (rand > 0.4 && rand <= 0.7) {
+      add([
+        sprite("power"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-power",
+      ]);
+    }
+
+    if (rand > 0.38 && rand <= 0.4) {
+      add([
+        sprite("bomb"),
+        pos(e.pos),
+        body(),
+        // strings here means a tag
+        "powerup-bomb",
+      ]);
+    }
+  }
+
+  // if a "bullet" and a "enemy" collides, remove both of them
+  collides("bullet", "enemyA", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyB", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyC", (b, e) => { defeatAnEnemy(b, e); });
+  collides("bullet", "enemyD", (b, e) => { defeatAnEnemy(b, e); });
+
+  collides("player", "powerup-bomb", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    bomb++;
+    bombText.text = "Bomb    " + bomb;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-point", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    let getScore = parseInt(100 + height() - p.pos.y);
+    if (getScore > 800) {
+      getScore = 800;
+    }
+    score.value += getScore;
+    score.text = "Score   " + score.value;
+    itemCount++;
+    itemText.text = "Items   " + itemCount;
+    destroy(pp);
+  });
+
+  collides("player", "powerup-power", (p, pp) => {
+    if (isRespawning) { return; }
+    play("pick", {volume: 0.5});
+    if (power < 10) {
+      //power+=2.3;
+      power+=0.3;
+      powerText.text = "Power   " + power.toFixed(1);
+      if (power > 10) {
+        power = 10;
+        powerText.text = "Power   MAX";
+      }
+      
+    }
+    destroy(pp);
+  });
+
+  function playerHit(p, e) {
+    if (isInvincible || isRespawning) { return; }
+    isRespawning = true;
+    play("hit");
+    life--;
+    power--;
+    if (power < 1) { power = 1; }
+    lifeText.text = "Player  " + life;
+    powerText.text = "Power   " + power.toFixed(1);
+    if (life < 0) {
+      bgm.pause();
+      go("gameover", score);
+      return;
+    }
+    destroy(e);
+    p.hidden = true;
+    player.hidden = true;
+    wait(2, () => {
+      player.pos.x = mapWidth() / 2;
+      player.pos.y = height() - 15;
+      p.hidden = false;
+      player.hidden = false;
+      isRespawning = false;
+      isInvincible = true;
+      wait(3, () => {
+        isInvincible = false;
+      });
+    });
+  }
+
+  collides("playerHitJudgePoint", "enemyBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyBullet2", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "bossBullet1", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyA", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
+  collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
+
+
+  function playerGraze(player, bullet) {
+    if (!bullet.isGrazed) {
+      bullet.isGrazed = true;
+      graze++;
+      grazeText.text = "Graze   " + graze;
+      score.value += 10;
+      score.text = "Score   " + score.value;
+    }
+  }
+
+  collides("player", "enemyBullet1", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "enemyBullet2", (e, eb) => { playerGraze(e, eb); });
+  collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
+  
+
+  action("enemyA", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time % 35 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) + Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) - Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) - Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyB", (e) => {
+    e.move(ENEMY_SPEED, 0);
+    e.time++;
+    if (e.time % 35 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) + Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) - Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) - Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x > mapWidth()) {
+      destroy(e);
+    }
+  });
+
+  action("enemyC", (e) => {
+    e.time++;
+    e.move(-ENEMY_SPEED, 0);
+    if (e.time % 35 == 0) { // enemy shoot
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y),
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) + Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+      add([  
+        sprite("eb2"), 
+        rotate(getDirection(e.pos.x, e.pos.y) - Math.PI / 12 + Math.PI / 2) , 
+        pos(e.pos.x, e.pos.y), 
+        "enemyBullet2", {
+          direction: getDirection(e.pos.x, e.pos.y) - Math.PI / 12,
+          isGrazed: false
+        }
+      ]);
+    }
+    if (e.pos.x < 0) {
+      destroy(e);
+    }
+  });
+
+  action("enemyD", (e) => {
+    e.move(0, ENEMY_SPEED);
+    e.time++;
+    if (e.time % 30 == 0) { // enemy shoot
+      let randDirection = rand(0, Math.PI * 2);
+      for (let i = 0; i < 12; i ++) {
+        add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
+          direction: randDirection + ((Math.PI / 6) * i),
+          isGrazed: false
+        }]);
+      }
+    }
+    if (e.pos.y > height()) {
+      destroy(e);
+    }
+  });
+
+  action("powerup-point", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POINT_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-power", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("powerup-bomb", (pp) => {
+    let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
+    pp.move(0, currentSpeed++);
+    if (pp.pos > height()) {
+      destroy(pp);
+    }
+  });
+
+  action("enemyBullet1", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("enemyBullet2", (eb) => {
+    let currentSpeed = ENEMY_BULLET_SPEED;
+    eb.move(Math.cos(eb.direction) * currentSpeed * -1, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("bossBullet1", (eb) => {
+    let currentSpeed = eb.speed;
+    eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
+    if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
+      destroy(eb);
+    }
+  });
+
+  action("player", (p) => {
+    playerHitJudgePoint.pos.x = p.pos.x + 2;
+    playerHitJudgePoint.pos.y = p.pos.y - 2;
+  });
+
+  // spawn an enemy every 1 second
+  loop(0.3, () => {
+    if (!isBossExist) {
+      position++;
+    }
+    if (boss1Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss1();
+    if (boss2Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss2();
+    if (enemyALocation.lastIndexOf(position) != -1) spawnEnemyA();
+    if (enemyBLocation.lastIndexOf(position) != -1) spawnEnemyB();
+    if (enemyCLocation.lastIndexOf(position) != -1) spawnEnemyC();
+    if (enemyDLocation.lastIndexOf(position) != -1) spawnEnemyD();
+  });
+
+  loop(0.075, () => {
+    if (isFiring && !isRespawning) {
+      play("fire", {volume: 0.3});
+      // console.log(isFocusing);
+      for (let i = 0; i < parseInt(power); i++) {
+        add([
+          sprite("bullet00"),
+          pos(player.pos),
+          // strings here means a tag
+          "bullet",
+          {
+            direction: Math.PI / 2 + ((isFocusing ? 0.03 : 0.07) * parseInt(i + 1 / 2) * Math.pow(-1, i))
+          }
+        ]);
+      }
+    } 
+  });
+});
+scene("levelup", (args) => {
+    add([
+      pos(width() / 2, height() / 3),
+      text("Stage Clear")
+    ]);
+    add([
+      pos(width() / 2, height() / 2 - 50),
+      text("Stage * 10 = "),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2 + 75, height() / 2 - 50),
+      text((args.nextLevel - 1) * 10),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2, height() / 2 - 30),
+      text("Power * 10 = "),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2 + 75, height() / 2 - 30),
+      text(args.power * 10),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2, height() / 2 - 10),
+      text("Graze * 1 = "),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2 + 75, height() / 2 - 10),
+      text(args.graze),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2, height() / 2 + 10),
+      text("* Point Item"),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2 + 75, height() / 2 + 10),
+      text(args.itemCount),
+      origin("right")
+    ]);
+    var totalScore = ((args.nextLevel - 1) * 10 + args.power * 10 + args.graze) * args.itemCount;
+    add([
+      pos(width() / 2, height() / 2 + 30),
+      text("Total"),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2 + 75, height() / 2 + 30),
+      text(totalScore),
+      origin("right")
+    ]);
+    add([
+      pos(width() / 2, height() / 3 * 2),
+      text("Press Enter to Continue")
+    ]);
+
+    keyPress("enter", () => {
+      bgm.pause();
+      switch (args.nextLevel) {
+        case 2:
+          bgm.src = "./sounds/th06_04.mp3";
+          break;
+        case 3:
+          bgm.src = "./sounds/th06_06.mp3";
+          break;
+        default:
+          break;
+      }
+      bgm.load();
+      bgm.play();
+      if (args.nextLevel == 4) {
         bgm.src = "./sounds/th06_16.mp3";
         bgm.load();
         bgm.play();
-        go("tbc", score.value);
-      }, 2000);
-    } else {
-      boss.rune--;
-      bossRunes.text = "Enemy " + (boss.rune - 1);
-      boss.life = boss.maxLife;
-    }
-  }
-});
-
-action("small-powerup-point", (e) => {
-  var dx = player.pos.x - e.pos.x;
-  var dy = player.pos.y - e.pos.y;
-  var distance = Math.hypot(dx, dy);
-  e.move(SMALL_POWERUP_POINT_SPEED * dx / distance, SMALL_POWERUP_POINT_SPEED * dy / distance);
-});
-
-collides("player", "small-powerup-point", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  let getScore = parseInt(100 + height() - p.pos.y);
-  if (getScore > 800) {
-    getScore = 800;
-  }
-  getScore /= 10;
-  getScore = Math.floor(getScore);
-  score.value += getScore;
-  score.text = "Score   " + score.value;
-
-  destroy(pp);
-});
-
-function convertAllBullets() { // when defeating a rune of a boss
-  every("bossBullet1", (e) => { 
-    add([
-      sprite("smallpoint"),
-      pos(e.pos),
-      // strings here means a tag
-      "small-powerup-point"
-    ]);
-    destroy(e);
-  });
-}
-
-function removeAllBullets() { // bomb
-
-}
-
-const hudBorder = add([
-  // width, height
-  rect(209, 470),
-  pos(533, 240),
-  color(1, 1, 1),
-]);
-
-const hud = add([
-  // width, height
-  rect(207, 468),
-  pos(533, 240),
-  color(0, 0, 0),
-]);
-
-const score = add([
-  pos(width() - 200, 12),
-  text("Score   " + args.initScore),
-  // all objects defaults origin to center, we want score text to be top left
-  origin("topleft"),
-  // plain objects becomes fields of score
-  {
-    value: args.initScore,
-  },
-]);
-
-const powerText = add([
-  pos(width() - 200, 20),
-  text("Power   " + (power >= 10 ? "MAX" : power)),
-  origin("topleft"),
-  {}
-])
-
-const lifeText = add([
-  pos(width() - 200, 28),
-  text("Player  " + life),
-  origin("topleft"),
-  {}
-])
-
-const grazeText = add([
-  pos(width() - 200, 36),
-  text("Graze   " + graze),
-  origin("topleft"),
-  {}
-])
-
-const itemText = add([
-  pos(width() - 200, 44),
-  text("Items   " + itemCount),
-  origin("topleft"),
-  {}
-])
-
-const bombText = add([
-  pos(width() - 200, 52),
-  text("Bomb    " + bomb),
-  origin("topleft"),
-  {}
-])
-
-function defeatAnEnemy(b, e) {
-  play("kill", {volume: 0.3});
-  destroy(b);
-  destroy(e);
-  score.value += 100;
-  score.text = "Score   " + score.value;
-
-  let rand = Math.random();
-  if (rand > 0.7) {
-    add([
-      sprite("point"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-point",
-    ]);
-  }
-
-  if (rand > 0.4 && rand <= 0.7) {
-    add([
-      sprite("power"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-power",
-    ]);
-  }
-
-  if (rand > 0.38 && rand <= 0.4) {
-    add([
-      sprite("bomb"),
-      pos(e.pos),
-      body(),
-      // strings here means a tag
-      "powerup-bomb",
-    ]);
-  }
-}
-
-// if a "bullet" and a "enemy" collides, remove both of them
-collides("bullet", "enemyA", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyB", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyC", (b, e) => { defeatAnEnemy(b, e); });
-collides("bullet", "enemyD", (b, e) => { defeatAnEnemy(b, e); });
-
-collides("player", "powerup-bomb", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  bomb++;
-  bombText.text = "Bomb    " + bomb;
-  destroy(pp);
-});
-
-collides("player", "powerup-point", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  let getScore = parseInt(100 + height() - p.pos.y);
-  if (getScore > 800) {
-    getScore = 800;
-  }
-  score.value += getScore;
-  score.text = "Score   " + score.value;
-  itemCount++;
-  itemText.text = "Items   " + itemCount;
-  destroy(pp);
-});
-
-collides("player", "powerup-power", (p, pp) => {
-  if (isRespawning) { return; }
-  play("pick", {volume: 0.5});
-  if (power < 10) {
-    //power+=2.3;
-    power+=0.3;
-    powerText.text = "Power   " + power.toFixed(1);
-    if (power > 10) {
-      power = 10;
-      powerText.text = "Power   MAX";
-    }
-    
-  }
-  destroy(pp);
-});
-
-function playerHit(p, e) {
-  if (isInvincible || isRespawning) { return; }
-  isRespawning = true;
-  play("hit");
-  life--;
-  power--;
-  if (power < 1) { power = 1; }
-  lifeText.text = "Player  " + life;
-  powerText.text = "Power   " + power.toFixed(1);
-  if (life < 0) {
-    bgm.pause();
-    go("gameover", score);
-    return;
-  }
-  destroy(e);
-  p.hidden = true;
-  player.hidden = true;
-  wait(2, () => {
-    player.pos.x = mapWidth() / 2;
-    player.pos.y = height() - 15;
-    p.hidden = false;
-    player.hidden = false;
-    isRespawning = false;
-    isInvincible = true;
-    wait(3, () => {
-      isInvincible = false;
-    });
-  });
-}
-
-collides("playerHitJudgePoint", "enemyBullet1", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyBullet2", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "bossBullet1", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyA", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyB", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyC", (e, eb) => { playerHit(e, eb); });
-collides("playerHitJudgePoint", "enemyD", (e, eb) => { playerHit(e, eb); });
-
-
-function playerGraze(player, bullet) {
-  if (!bullet.isGrazed) {
-    bullet.isGrazed = true;
-    graze++;
-    grazeText.text = "Graze   " + graze;
-    score.value += 10;
-    score.text = "Score   " + score.value;
-  }
-}
-
-collides("player", "enemyBullet1", (e, eb) => { playerGraze(e, eb); });
-collides("player", "enemyBullet2", (e, eb) => { playerGraze(e, eb); });
-collides("player", "bossBullet1", (e, eb) => { playerGraze(e, eb); });
-
-
-action("enemyA", (e) => {
-  e.move(0, ENEMY_SPEED);
-  e.time++;
-  if (e.time % 10 == 0) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
+        go("tbc", args.initScore + totalScore);
+      } else {
+        go("level" + args.nextLevel, {
+          power: args.power,
+          life: args.life,
+          bomb: args.bomb,
+          initScore: args.initScore + totalScore,
+          graze: args.graze,
+          itemCount: args.itemCount
+        });
       }
+    })
+});
+scene("tbc", (score) => {
+    add([
+      pos(width() / 2, height() / 2),
+      text("To Be Continued\nPress Enter to Return\n\n Your Final Score: " + score)
     ]);
-  }
-  if (e.pos.y > height()) {
-    destroy(e);
-  }
-});
 
-action("enemyB", (e) => {
-  e.move(ENEMY_SPEED, 0);
-  e.time++;
-  if (e.time % 10 == 0) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
-      }
-    ]);
-  }
-  if (e.pos.x > mapWidth()) {
-    destroy(e);
-  }
-});
-
-action("enemyC", (e) => {
-  e.time++;
-  e.move(-ENEMY_SPEED, 0);
-  if (e.time % 10 == 0) { // enemy shoot
-    add([  
-      sprite("eb2"), 
-      rotate(getDirection(e.pos.x, e.pos.y) + Math.PI / 2) , 
-      pos(e.pos.x, e.pos.y), 
-      "enemyBullet2", {
-        direction: getDirection(e.pos.x, e.pos.y),
-        isGrazed: false
-      }
-    ]);
-  }
-  if (e.pos.x < 0) {
-    destroy(e);
-  }
-});
-
-action("enemyD", (e) => {
-  e.move(0, ENEMY_SPEED);
-  e.time++;
-  if (e.time % 50 == 0) { // enemy shoot
-    let randDirection = rand(0, Math.PI * 2);
-    for (let i = 0; i < 6; i ++) {
-      add([  sprite("eb1"),  pos(e.pos.x, e.pos.y), "enemyBullet1", {
-        direction: randDirection + ((Math.PI / 3) * i),
-        isGrazed: false
-      }]);
-    }
-  }
-  if (e.pos.y > height()) {
-    destroy(e);
-  }
-});
-
-action("powerup-point", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POINT_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
-  }
-});
-
-action("powerup-power", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
-  }
-});
-
-action("powerup-bomb", (pp) => {
-  let currentSpeed = INITIAL_POWERUP_POWER_SPEED;
-  pp.move(0, currentSpeed++);
-  if (pp.pos > height()) {
-    destroy(pp);
-  }
-});
-
-action("enemyBullet1", (eb) => {
-  let currentSpeed = ENEMY_BULLET_SPEED;
-  eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("enemyBullet2", (eb) => {
-  let currentSpeed = ENEMY_BULLET_SPEED;
-  eb.move(Math.cos(eb.direction) * currentSpeed * -1, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("bossBullet1", (eb) => {
-  let currentSpeed = eb.speed;
-  eb.move(Math.cos(eb.direction) * currentSpeed, Math.sin(eb.direction) * currentSpeed);
-  if (eb.pos.x < 0 || eb.pos.x > mapWidth() || eb.pos.y < 0 || eb.pos.y > height()) {
-    destroy(eb);
-  }
-});
-
-action("player", (p) => {
-  playerHitJudgePoint.pos.x = p.pos.x + 2;
-  playerHitJudgePoint.pos.y = p.pos.y - 2;
-});
-
-// spawn an enemy every 1 second
-loop(0.3, () => {
-  if (!isBossExist) {
-    position++;
-  }
-  if (boss1Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss1();
-  if (boss2Location.lastIndexOf(position) != -1 && !isBossExist) spawnBoss2();
-  if (enemyALocation.lastIndexOf(position) != -1) spawnEnemyA();
-  if (enemyBLocation.lastIndexOf(position) != -1) spawnEnemyB();
-  if (enemyCLocation.lastIndexOf(position) != -1) spawnEnemyC();
-  if (enemyDLocation.lastIndexOf(position) != -1) spawnEnemyD();
-});
-
-loop(0.075, () => {
-  if (isFiring && !isRespawning) {
-    play("fire", {volume: 0.3});
-    // console.log(isFocusing);
-    for (let i = 0; i < parseInt(power); i++) {
-      add([
-        sprite("bullet00"),
-        pos(player.pos),
-        // strings here means a tag
-        "bullet",
-        {
-          direction: Math.PI / 2 + ((isFocusing ? 0.03 : 0.07) * parseInt(i + 1 / 2) * Math.pow(-1, i))
-        }
-      ]);
-    }
-  } 
-});
-});
-scene("levelup", (args = {}) => {
-add([
-  pos(width() / 2, height() / 2),
-  text("Stage Clear\nPress Enter to Continue")
-]);
-
-keyPress("enter", () => {
-  bgm.pause();
-  bgm.src = "./sounds/th06_04.mp3";
-  bgm.load();
-  bgm.play();
-  go("level" + args.nextLevel, {
-    power: args.power,
-    life: args.life,
-    bomb: args.bomb,
-    initScore: args.initScore,
-    graze: args.graze,
-    itemCount: args.itemCount
-  });
-})
+    keyPress("enter", () => {
+      bgm.pause();
+      bgm.src = "./sounds/th06_01.mp3";
+      bgm.load();
+      bgm.play();
+      go("main");
+    })
 });
 scene("main", (args = {}) => {
-add([
-  sprite("title00"),
-  scale(width() / 640, height() / 480),
-  origin("topleft"),
-]);
+    add([
+      sprite("title00"),
+      scale(width() / 640, height() / 480),
+      origin("topleft"),
+    ]);
 
-// play("th06_01");
-var bgm = document.getElementById("bgm");
+    // play("th06_01");
+    var bgm = document.getElementById("bgm");
 
-if (bgm == undefined) {
-  bgm = document.createElement("audio");
-  bgm.id = "bgm";
-  bgm.loop = true;
-}
+    if (bgm == undefined) {
+      bgm = document.createElement("audio");
+      bgm.id = "bgm";
+      bgm.loop = true;
+    }
 
-bgm.src = "./sounds/th06_01.mp3";
-if (document.getElementById("bgm") == undefined) {
-  document.body.appendChild(bgm);
-}
-bgm.play();
+    bgm.src = "./sounds/th06_01.mp3";
+    if (document.getElementById("bgm") == undefined) {
+      document.body.appendChild(bgm);
+    }
+    bgm.play();
+    
+    add([
+      pos(width() / 2, 40),
+      text("Touhou Akamakyou", 32),
+      color(1, 0, 0)
+    ]);
 
-add([
-  pos(width() / 2, 40),
-  text("Touhou Akamakyou", 32),
-  color(1, 0, 0)
-]);
+    add([
+      pos(width() / 2, 80),
+      text("V3.1"),
+      color(1, 0, 0)
+    ]);
 
-add([
-  pos(width() / 2, 80),
-  text("V3.1"),
-  color(1, 0, 0)
-]);
+    add([
+      pos(width() / 2, 90),
+      text("(Incomplete - Updated 04-25-2021)"),
+      color(1, 0, 0)
+    ]);
 
-add([
-  pos(width() / 2, 90),
-  text("(Incomplete - Updated 04-20-2021)"),
-  color(1, 0, 0)
-]);
+    add([
+      pos(width() / 2, height() / 2 + 120),
+      text("Enter: Start")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 120),
-  text("Enter: Start")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 130),
+      text("Arrow Keys (Hold): Move")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 130),
-  text("Arrow Keys (Hold): Move")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 140),
+      text("X (Hold): Fire")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 140),
-  text("X (Hold): Fire")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 150),
+      text("C: Bomb")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 150),
-  text("C: Bomb")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 160),
+      text("Z (Hold): Slow down and concentrate fire")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 160),
-  text("Z (Hold): Slow down and concentrate fire")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 170),
+      text("(c) 2021 No.5972 . MIT License.")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 170),
-  text("(c) 2021 No.5972 . MIT License.")
-]);
+    add([
+      pos(width() / 2, height() / 2 + 185),
+      text("This project is of 2ndary creation based on Touhou Koumakyou. \nCopyright of the material belongs to the original author.")
+    ]);
 
-add([
-  pos(width() / 2, height() / 2 + 185),
-  text("This project is of 2ndary creation based on Touhou Koumakyou. \nCopyright of the material belongs to the original author.")
-]);
-
-keyPress("enter", () => {
-  bgm.pause();
-  bgm.src = "./sounds/th06_02.mp3";
-  bgm.load();
-  bgm.play();
-  go("level1", {});
-})
-});
-scene("tbc", (args = {}) => {
-add([
-  pos(width() / 2, height() / 2),
-  text("To Be Continued\nPress Enter to Return\n\n Your Final Score: " + score)
-]);
-
-keyPress("enter", () => {
-  bgm.pause();
-  bgm.src = "./sounds/th06_01.mp3";
-  bgm.load();
-  bgm.play();
-  go("main");
-})
+    keyPress("enter", () => {
+      bgm.pause();
+      bgm.src = "./sounds/th06_02.mp3";
+      bgm.load();
+      bgm.play();
+      go("level1", {});
+    })
 });
 start("main");
 
