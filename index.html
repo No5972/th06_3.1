@@ -4,7 +4,7 @@
 <html>
 
 <head>
-  <title>Touhou Akamakyou V3.1 (Dev)</title>
+  <title>Touhou Akamakyou V3.2 (Dev)</title>
   <meta charset="utf-8">
   <style>
     * {
@@ -983,7 +983,7 @@ scene("level1", (args = {}) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -1883,7 +1883,7 @@ scene("level2", (args) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -2828,7 +2828,7 @@ scene("level3", (args) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -3786,7 +3786,7 @@ scene("level4", (args) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -3827,7 +3827,7 @@ scene("level5", (args) => {
 
   bgm.ontimeupdate = function () {
     if (bgm.currentTime >= bgm.duration - 0.2) {
-      bgm.currentTime = 47;
+      bgm.currentTime = 40;
       bgm.play();
     }
   }
@@ -4809,7 +4809,7 @@ scene("level5", (args) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -4850,7 +4850,7 @@ scene("level6", (args) => {
 
   bgm.ontimeupdate = function () {
     if (bgm.currentTime >= bgm.duration - 0.2) {
-      bgm.currentTime = 47;
+      bgm.currentTime = 5;
       bgm.play();
     }
   }
@@ -5899,7 +5899,7 @@ scene("level6", (args) => {
     if (isFiring && !isRespawning) {
       play("fire", {volume: 0.3});
       // console.log(isFocusing);
-      for (let i = 0; i < parseInt(power); i++) {
+      for (let i = 0; i < parseInt(power + 0.01); i++) {
         add([
           sprite("bullet00"),
           pos(player.pos),
@@ -6069,7 +6069,7 @@ scene("main", (args = {}) => {
     if (bgm == undefined) {
       bgm = document.createElement("audio");
       bgm.id = "bgm";
-      bgm.loop = true;
+      bgm.loop = false;
     }
 
     bgm.src = "./sounds/th06_01.mp3";
@@ -6093,7 +6093,7 @@ scene("main", (args = {}) => {
 
     add([
       pos(width() / 2, 80),
-      text("V3.1"),
+      text("V3.2"),
       color(1, 0, 0)
     ]);
 
